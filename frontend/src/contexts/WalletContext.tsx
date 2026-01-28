@@ -1,6 +1,8 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 import { useAccount, useBalance, useDisconnect } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
+import { formatUnits } from 'viem';
 import { useState } from 'react';
 
 interface WalletContextType {
@@ -28,7 +30,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const [contextScore, setContextScore] = useState<number | null>(null);
 
     const balance = balanceData
-        ? `${parseFloat(balanceData.formatted).toFixed(4)} ${balanceData.symbol}`
+        ? `${parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} ${balanceData.symbol}`
         : null;
 
     const networkName = chainId === sepolia.id ? 'Sepolia Testnet' :

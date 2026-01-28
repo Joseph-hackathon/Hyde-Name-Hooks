@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 
 export default function VerifyPage() {
-    const { isConnected, ensName, contextScore, setContextScore } = useWallet();
+    const { isConnected, contextScore, setContextScore } = useWallet();
     const [searchName, setSearchName] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
