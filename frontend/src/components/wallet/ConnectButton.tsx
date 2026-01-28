@@ -26,7 +26,7 @@ export default function ConnectButton() {
     };
 
     // Check if MetaMask is installed
-    const isMetaMaskInstalled = typeof window !== 'undefined' && window.ethereum;
+    const isMetaMaskInstalled = typeof window !== 'undefined' && 'ethereum' in window;
 
     if (isConnected && address) {
         return (

@@ -1,8 +1,5 @@
+/// <reference types="vite/client" />
 import type * as React from 'react';
-
-interface Window {
-  ethereum?: unknown;
-}
 
 type MdElementProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
   href?: string;
@@ -15,6 +12,10 @@ type MdElementProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>,
 };
 
 declare global {
+  interface Window {
+    ethereum?: unknown;
+  }
+
   namespace JSX {
     interface IntrinsicElements {
       'md-filled-button': MdElementProps;
