@@ -15,7 +15,21 @@ declare global {
   interface Window {
     ethereum?: unknown;
   }
+}
 
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      'md-filled-button': MdElementProps;
+      'md-outlined-button': MdElementProps;
+      'md-text-button': MdElementProps;
+      'md-filled-text-field': MdElementProps;
+      'md-linear-progress': MdElementProps;
+    }
+  }
+}
+
+declare module 'react/jsx-runtime' {
   namespace JSX {
     interface IntrinsicElements {
       'md-filled-button': MdElementProps;
