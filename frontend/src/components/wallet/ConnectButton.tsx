@@ -31,7 +31,7 @@ export default function ConnectButton() {
     if (isConnected && address) {
         return (
             <Button
-                variant="secondary"
+                variant="ghost"
                 size="sm"
                 onClick={disconnect}
             >
@@ -58,9 +58,9 @@ export default function ConnectButton() {
                 title="Connect Wallet"
                 size="sm"
             >
-                <div className="space-y-4">
+                <div className="space-y-5">
                     {!isMetaMaskInstalled ? (
-                        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                        <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
                             <div className="flex items-start gap-3">
                                 <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
                                 <div>
@@ -72,7 +72,7 @@ export default function ConnectButton() {
                                         href="https://metamask.io/download/"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-block bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors"
+                                        className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
                                     >
                                         Install MetaMask
                                     </a>
@@ -88,10 +88,10 @@ export default function ConnectButton() {
                             <button
                                 onClick={handleConnect}
                                 disabled={isPending}
-                                className="w-full p-6 rounded-2xl border-2 border-slate-100 hover:border-brand-blue transition-all hover:shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full p-6 rounded-3xl border border-slate-200 hover:border-indigo-200 transition-all hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed bg-white"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-md">
                                         <Wallet className="w-8 h-8 text-white" />
                                     </div>
                                     <div className="flex-1 text-left">
@@ -106,14 +106,14 @@ export default function ConnectButton() {
                             </button>
 
                             {error && (
-                                <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                                <div className="bg-red-50 border border-red-100 rounded-2xl p-3">
                                     <p className="text-sm text-red-700">
                                         <strong>Error:</strong> {error.message}
                                     </p>
                                 </div>
                             )}
 
-                            <div className="bg-pastel-blue p-4 rounded-xl">
+                            <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
                                 <p className="text-sm text-slate-700">
                                     <strong>Note:</strong> Make sure you're connected to <strong>Sepolia Testnet</strong> in MetaMask.
                                 </p>

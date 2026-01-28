@@ -17,19 +17,19 @@ export default function Button({
     ...props
 }: ButtonProps) {
 
-    const baseClasses = "font-bold rounded-2xl transition-all inline-flex items-center justify-center gap-2";
+    const baseClasses = "font-semibold rounded-full transition-all inline-flex items-center justify-center gap-2 shadow-sm";
 
     const variantClasses = {
-        primary: "bg-brand-blue text-white hover:bg-brand-dark shadow-lg shadow-brand-blue/20 hover:scale-105 active:scale-95",
+        primary: "bg-brand-blue text-white hover:bg-[#3730A3]",
         secondary: "bg-slate-100 text-brand-dark hover:bg-slate-200",
-        outline: "border-2 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white",
-        ghost: "text-brand-dark hover:bg-slate-100"
+        outline: "border border-slate-200 text-slate-700 hover:border-brand-blue hover:text-brand-blue hover:bg-brand-blue/5",
+        ghost: "text-slate-600 hover:text-brand-blue hover:bg-brand-blue/5"
     };
 
     const sizeClasses = {
         sm: "px-4 py-2 text-sm",
-        md: "px-6 py-3 text-base",
-        lg: "px-8 py-4 text-lg"
+        md: "px-6 py-3 text-sm",
+        lg: "px-8 py-4 text-base"
     };
 
     const isDisabled = disabled || loading;

@@ -87,9 +87,10 @@ export default function PoolsPage() {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-8"
+                    className="mb-8 space-y-2"
                 >
-                    <h1 className="text-5xl font-display font-bold text-brand-dark mb-4">
+                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Pools</p>
+                    <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-dark">
                         Privacy-Enhanced Pools
                     </h1>
                     <p className="text-lg text-slate-600">
@@ -102,22 +103,22 @@ export default function PoolsPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="flex gap-4 mb-8"
+                    className="flex flex-wrap gap-3 mb-8"
                 >
                     <button
                         onClick={() => setFilter('all')}
-                        className={`px-6 py-3 rounded-2xl font-bold transition-all ${filter === 'all'
-                                ? 'bg-brand-blue text-white shadow-lg'
-                                : 'bg-white text-brand-dark border border-slate-100'
+                        className={`px-5 py-2 rounded-full font-semibold transition-all ${filter === 'all'
+                                ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
                         All Pools
                     </button>
                     <button
                         onClick={() => setFilter('privacy')}
-                        className={`px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 ${filter === 'privacy'
-                                ? 'bg-brand-blue text-white shadow-lg'
-                                : 'bg-white text-brand-dark border border-slate-100'
+                        className={`px-5 py-2 rounded-full font-semibold transition-all flex items-center gap-2 ${filter === 'privacy'
+                                ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
                         <Lock className="w-4 h-4" />
@@ -125,9 +126,9 @@ export default function PoolsPage() {
                     </button>
                     <button
                         onClick={() => setFilter('open')}
-                        className={`px-6 py-3 rounded-2xl font-bold transition-all ${filter === 'open'
-                                ? 'bg-brand-blue text-white shadow-lg'
-                                : 'bg-white text-brand-dark border border-slate-100'
+                        className={`px-5 py-2 rounded-full font-semibold transition-all ${filter === 'open'
+                                ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
                         Open Access
@@ -145,7 +146,7 @@ export default function PoolsPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 + index * 0.05 }}
-                                className={`bg-white rounded-[2rem] p-6 shadow-soft border transition-all hover:shadow-lg ${hasAccess ? 'border-slate-100' : 'border-red-200 opacity-75'
+                                className={`ens-card p-6 hover:shadow-lg ${hasAccess ? 'border-slate-100' : 'border-red-200 opacity-75'
                                     }`}
                             >
                                 {/* Pool Header */}
@@ -173,12 +174,12 @@ export default function PoolsPage() {
                                     </div>
 
                                     {!hasAccess && (
-                                        <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">
+                                        <div className="bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-semibold border border-red-100">
                                             Locked
                                         </div>
                                     )}
                                     {hasAccess && pool.isGated && (
-                                        <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
+                                        <div className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-100">
                                             ✓ Access
                                         </div>
                                     )}
@@ -186,13 +187,13 @@ export default function PoolsPage() {
 
                                 {/* Pool Stats */}
                                 <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div className="bg-pastel-blue p-4 rounded-xl">
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                                         <div className="text-xs text-slate-500 mb-1">TVL</div>
                                         <div className="font-bold text-lg text-brand-dark">{pool.tvl}</div>
                                     </div>
-                                    <div className="bg-pastel-green p-4 rounded-xl">
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                                         <div className="text-xs text-slate-500 mb-1">APR</div>
-                                        <div className="font-bold text-lg text-green-600">{pool.apr}</div>
+                                        <div className="font-bold text-lg text-emerald-600">{pool.apr}</div>
                                     </div>
                                 </div>
 
@@ -202,9 +203,9 @@ export default function PoolsPage() {
                                 </div>
 
                                 {pool.isGated && (
-                                    <div className="bg-pastel-pink p-3 rounded-xl mb-4 text-sm">
+                                    <div className="bg-indigo-50 p-3 rounded-xl mb-4 text-sm border border-indigo-100">
                                         <span className="text-slate-700">
-                                            <Shield className="w-4 h-4 inline mr-2" />
+                                            <Shield className="w-4 h-4 inline mr-2 text-brand-blue" />
                                             <strong>Privacy-Enhanced:</strong> Selective disclosure enforced
                                         </span>
                                     </div>
@@ -241,7 +242,7 @@ export default function PoolsPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="mt-12 bg-gradient-to-br from-pastel-blue to-pastel-pink rounded-[2rem] p-8"
+                    className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[2rem] p-8 border border-slate-100"
                 >
                     <h2 className="text-2xl font-display font-bold text-brand-dark mb-4">
                         Why Privacy-Enhanced Pools?

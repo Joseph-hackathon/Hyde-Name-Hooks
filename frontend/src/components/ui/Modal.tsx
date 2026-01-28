@@ -39,7 +39,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50"
                     />
 
                     {/* Modal */}
@@ -49,17 +49,17 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             transition={{ duration: 0.3, ease: [0.2, 0.0, 0.0, 1.0] }}
-                            className={`bg-white rounded-3xl shadow-2xl ${sizeClasses[size]} w-full pointer-events-auto overflow-hidden`}
+                            className={`bg-white rounded-[2rem] shadow-2xl border border-slate-100 ${sizeClasses[size]} w-full pointer-events-auto overflow-hidden`}
                         >
                             {/* Header */}
                             {title && (
-                                <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                                    <h3 className="text-2xl font-display font-bold text-brand-dark">{title}</h3>
+                                <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                                    <h3 className="text-xl font-display font-bold text-brand-dark">{title}</h3>
                                     <button
                                         onClick={onClose}
-                                        className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                                        className="p-2 hover:bg-slate-100 rounded-full transition-colors"
                                     >
-                                        <X className="w-5 h-5 text-slate-400" />
+                                        <X className="w-5 h-5 text-slate-500" />
                                     </button>
                                 </div>
                             )}

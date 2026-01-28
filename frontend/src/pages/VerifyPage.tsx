@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
+import '@material/web/textfield/filled-text-field.js';
+import '@material/web/button/filled-button.js';
 
 export default function VerifyPage() {
     const { isConnected, contextScore, setContextScore } = useWallet();
@@ -33,9 +36,9 @@ export default function VerifyPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center max-w-md"
+                    className="text-center max-w-md bg-white border border-slate-100 rounded-[2rem] p-10 shadow-soft"
                 >
-                    <div className="w-20 h-20 bg-pastel-blue rounded-full flex items-center justify-center mx-auto mb-6">
+                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Shield className="w-10 h-10 text-brand-blue" />
                     </div>
                     <h2 className="text-3xl font-display font-bold text-brand-dark mb-4">
@@ -45,7 +48,7 @@ export default function VerifyPage() {
                         Connect your wallet to register your ENS name and unlock selective disclosure privacy.
                     </p>
                     <Link to="/">
-                        <Button>Back to Home</Button>
+                        <Button variant="outline">Back to Home</Button>
                     </Link>
                 </motion.div>
             </div>
@@ -54,15 +57,16 @@ export default function VerifyPage() {
 
     return (
         <div className="bg-background min-h-screen p-6">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-5xl mx-auto">
 
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-12"
+                    className="mb-10 space-y-2"
                 >
-                    <h1 className="text-5xl font-display font-bold text-brand-dark mb-4">
+                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Verify</p>
+                    <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-dark">
                         Claim Your Context
                     </h1>
                     <p className="text-lg text-slate-600">
@@ -77,30 +81,33 @@ export default function VerifyPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="md:col-span-2 bg-white rounded-[2rem] p-8 shadow-soft border border-slate-100"
+                        className="md:col-span-2 ens-card p-8"
                     >
                         <h2 className="text-2xl font-display font-bold text-brand-dark mb-6">
                             Enter Your ENS Name
                         </h2>
 
                         {/* Search Input */}
-                        <div className="relative mb-6">
-                            <input
-                                type="text"
-                                value={searchName}
-                                onChange={(e) => setSearchName(e.target.value)}
+                        <div className="mb-6 flex flex-wrap items-center gap-3">
+                            <md-filled-text-field
+                                label="ENS name"
                                 placeholder="alice.eth"
-                                className="w-full px-6 py-4 text-xl font-bold border-2 border-slate-100 rounded-2xl focus:border-brand-blue focus:outline-none transition-colors"
+                                className="flex-1"
+                                value={searchName}
+                                onInput={(event: FormEvent<HTMLElement>) => {
+                                    const target = event.currentTarget as HTMLInputElement;
+                                    setSearchName(target.value);
+                                }}
                             />
-                            <Button
+                            <md-filled-button
                                 onClick={handleVerify}
-                                loading={isVerifying}
-                                disabled={!searchName}
-                                className="absolute right-2 top-2"
+                                disabled={!searchName || isVerifying}
                             >
-                                <Search className="w-4 h-4" />
-                                Claim
-                            </Button>
+                                <span className="flex items-center gap-2">
+                                    <Search className="w-4 h-4" />
+                                    {isVerifying ? 'Verifying...' : 'Claim'}
+                                </span>
+                            </md-filled-button>
                         </div>
 
                         {/* Verification Status */}
@@ -108,7 +115,7 @@ export default function VerifyPage() {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="bg-pastel-green p-6 rounded-2xl border border-green-200 mb-6"
+                                className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 mb-6"
                             >
                                 <div className="flex items-start gap-4">
                                     <CheckCircle className="w-6 h-6 text-green-600 mt-1" />
@@ -130,7 +137,7 @@ export default function VerifyPage() {
                             <h3 className="font-bold text-brand-dark mb-4">How Selective Disclosure Works</h3>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-pastel-blue rounded-xl flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <Lock className="w-5 h-5 text-brand-blue" />
                                 </div>
                                 <div>
@@ -142,7 +149,7 @@ export default function VerifyPage() {
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-pastel-pink rounded-xl flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <Shield className="w-5 h-5 text-pink-600" />
                                 </div>
                                 <div>
@@ -154,7 +161,7 @@ export default function VerifyPage() {
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-pastel-green rounded-xl flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <CheckCircle className="w-5 h-5 text-green-600" />
                                 </div>
                                 <div>
@@ -176,7 +183,7 @@ export default function VerifyPage() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.2 }}
-                                className="bg-pastel-pink rounded-[2rem] p-6 shadow-soft relative overflow-hidden"
+                                className="ens-card p-6 relative overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <TrendingUp className="w-32 h-32" />
@@ -207,7 +214,7 @@ export default function VerifyPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="bg-pastel-blue rounded-[2rem] p-6 shadow-soft"
+                            className="ens-card p-6"
                         >
                             <h3 className="text-lg font-bold text-brand-dark mb-4">Privacy Benefits</h3>
 
