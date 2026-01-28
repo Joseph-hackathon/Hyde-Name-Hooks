@@ -44,21 +44,21 @@ export default function LandingPage() {
     ];
     const pillars = [
         {
-            title: 'Your name',
-            body: 'Your ENS name is your Web3 identity. Simple, memorable, unmistakably yours.',
-            icon: Globe,
+            title: '선택적 공개',
+            body: '실제 점수는 숨기고, 필요한 티어만 증명해 프라이버시를 지키며 접근합니다.',
+            icon: Shield,
             tint: 'bg-pastel-blue'
         },
         {
-            title: 'Consistent everywhere',
-            body: 'Use one name across wallets, dapps, and communities with zero friction.',
+            title: '티어 기반 실행',
+            body: 'ENS 컨텍스트로 Standard/Trusted/Elite를 구분해 풀 접근 권한을 자동 부여합니다.',
             icon: Users,
             tint: 'bg-pastel-pink'
         },
         {
-            title: 'True ownership',
-            body: 'Own your name onchain with no intermediaries and full control.',
-            icon: Shield,
+            title: 'MEV 보호 훅',
+            body: 'Uniswap v4 Hook으로 실행 전 검증과 쿨다운을 적용해 샌드위치 위험을 줄입니다.',
+            icon: Globe,
             tint: 'bg-pastel-green'
         }
     ];
@@ -192,24 +192,8 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="relative py-10 border-y border-slate-100 bg-white/70 overflow-hidden">
-                <div className="absolute left-8 top-6 h-16 w-32 rounded-sm border border-indigo-200/60 bg-indigo-50/70">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(99,102,241,0.25)_1px,transparent_0)] [background-size:6px_6px]" />
-                    <motion.div
-                        className="absolute -left-4 top-4 h-5 w-5 rounded-sm bg-white shadow-sm"
-                        animate={{ x: [0, 120, 0] }}
-                        transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
-                    />
-                </div>
-                <div className="absolute right-10 bottom-4 h-12 w-36 rounded-sm border border-fuchsia-200/60 bg-fuchsia-50/70">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(236,72,153,0.2)_1px,transparent_0)] [background-size:6px_6px]" />
-                    <motion.div
-                        className="absolute -left-3 top-3 h-4 w-4 rounded-sm bg-white shadow-sm"
-                        animate={{ x: [0, 130, 0] }}
-                        transition={{ duration: 14, repeat: Infinity, ease: 'linear', delay: 1 }}
-                    />
-                </div>
-                <div className="relative container mx-auto px-6 flex flex-wrap gap-4 items-center justify-center text-sm font-semibold text-slate-500">
+            <section className="py-10 border-y border-slate-100 bg-white/70">
+                <div className="container mx-auto px-6 flex flex-wrap gap-4 items-center justify-center text-sm font-semibold text-slate-500">
                     {nameChips.map((chip) => (
                         <span key={chip.label} className="ens-chip hover:shadow-md transition-shadow">
                             {chip.label}

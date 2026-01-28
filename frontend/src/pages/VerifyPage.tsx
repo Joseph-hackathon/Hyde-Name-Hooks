@@ -265,6 +265,63 @@ export default function VerifyPage() {
                         </motion.div>
                     </div>
                 </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="mt-10 ens-card p-8"
+                >
+                    <div className="flex flex-col gap-2 mb-6">
+                        <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Tier Scoring</p>
+                        <h2 className="text-2xl font-display font-bold text-brand-dark">
+                            온체인 검증 &amp; 티어 구분 기준
+                        </h2>
+                        <p className="text-sm text-slate-600">
+                            거래 이력, 보유 자산, DeFi 참여도 등 온체인 데이터를 합산해 0-1000 점수로 산정하고,
+                            점수 구간에 따라 Standard/Trusted/Elite로 분류합니다.
+                        </p>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm border-separate border-spacing-y-2">
+                            <thead>
+                                <tr className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                                    <th className="px-4 py-2">Tier</th>
+                                    <th className="px-4 py-2">Score Range</th>
+                                    <th className="px-4 py-2">Verification Inputs</th>
+                                    <th className="px-4 py-2 text-right">Eligibility</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="bg-slate-50 rounded-2xl">
+                                    <td className="px-4 py-3 font-semibold text-brand-dark">Standard</td>
+                                    <td className="px-4 py-3 text-slate-600">0 - 799</td>
+                                    <td className="px-4 py-3 text-slate-600">
+                                        Wallet age, basic holdings, tx activity
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-slate-500">Open pools</td>
+                                </tr>
+                                <tr className="bg-indigo-50 rounded-2xl">
+                                    <td className="px-4 py-3 font-semibold text-brand-dark">Trusted</td>
+                                    <td className="px-4 py-3 text-slate-600">800 - 899</td>
+                                    <td className="px-4 py-3 text-slate-600">
+                                        DeFi usage, DAO participation, consistent volume
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-indigo-600 font-semibold">Privacy pools</td>
+                                </tr>
+                                <tr className="bg-fuchsia-50 rounded-2xl">
+                                    <td className="px-4 py-3 font-semibold text-brand-dark">Elite</td>
+                                    <td className="px-4 py-3 text-slate-600">900 - 1000</td>
+                                    <td className="px-4 py-3 text-slate-600">
+                                        High value holdings, sustained onchain reputation
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-fuchsia-600 font-semibold">Premium pools</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );
