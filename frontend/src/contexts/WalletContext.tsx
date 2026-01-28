@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useAccount, useBalance, useDisconnect } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
+import { sepolia, baseSepolia } from 'wagmi/chains';
 import { formatUnits } from 'viem';
 import { useState } from 'react';
 import { getTier } from '../lib/api';
+import { CHAINS } from '../config/contracts';
 
 interface WalletContextType {
     address: string | undefined;
@@ -38,9 +39,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         ? `${parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} ${balanceData.symbol}`
         : null;
 
-    const networkName = chainId === sepolia.id ? 'Sepolia Testnet' :
-        chainId === 1 ? 'Ethereum Mainnet' :
-            chainId ? `Chain ID ${chainId}` : null;
+    const networkName =
+        chainId === sepolia.id ? 'Sepolia Testnet' :
+            chainId === baseSepolia.id ? 'Base Sepolia' :
+                chainId === CHAINS.unichainSepolia.id ? 'Unichain Sepolia' :
+                    chainId === 1 ? 'Ethereum Mainnet' :
+                        chainId ? `Chain ID ${chainId}` : null;
 
     const disconnect = () => {
         wagmiDisconnect();
