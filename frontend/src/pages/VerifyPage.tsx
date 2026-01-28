@@ -263,6 +263,35 @@ export default function VerifyPage() {
                                 </div>
                             </div>
                         </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.35 }}
+                            className="ens-card p-6"
+                        >
+                            <h3 className="text-lg font-bold text-brand-dark mb-4">Onchain Verification Flow</h3>
+                            <div className="space-y-3 text-sm text-slate-600">
+                                <div className="flex items-start gap-3">
+                                    <div className="h-7 w-7 rounded-full bg-indigo-50 text-brand-blue font-semibold flex items-center justify-center">
+                                        1
+                                    </div>
+                                    <span>Verify ENS ownership against the connected wallet.</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="h-7 w-7 rounded-full bg-indigo-50 text-brand-blue font-semibold flex items-center justify-center">
+                                        2
+                                    </div>
+                                    <span>Compute score from onchain activity and normalize to 0-1000.</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="h-7 w-7 rounded-full bg-indigo-50 text-brand-blue font-semibold flex items-center justify-center">
+                                        3
+                                    </div>
+                                    <span>Register tier onchain, then gates pools via the registry.</span>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
 
@@ -275,12 +304,45 @@ export default function VerifyPage() {
                     <div className="flex flex-col gap-2 mb-6">
                         <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Tier Scoring</p>
                         <h2 className="text-2xl font-display font-bold text-brand-dark">
-                            온체인 검증 &amp; 티어 구분 기준
+                            Onchain Verification &amp; Tier Scoring
                         </h2>
                         <p className="text-sm text-slate-600">
-                            거래 이력, 보유 자산, DeFi 참여도 등 온체인 데이터를 합산해 0-1000 점수로 산정하고,
-                            점수 구간에 따라 Standard/Trusted/Elite로 분류합니다.
+                            We aggregate normalized onchain signals into a 0-1000 score and map the result to
+                            Standard/Trusted/Elite tiers.
                         </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                            <h4 className="font-semibold text-brand-dark mb-3">Score Composition (0-1000)</h4>
+                            <div className="space-y-3 text-sm text-slate-600">
+                                <div className="flex items-center justify-between">
+                                    <span>Wallet age &amp; activity</span>
+                                    <span className="font-semibold text-slate-700">20%</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>Holdings &amp; liquidity</span>
+                                    <span className="font-semibold text-slate-700">30%</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>DeFi usage</span>
+                                    <span className="font-semibold text-slate-700">30%</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>DAO participation</span>
+                                    <span className="font-semibold text-slate-700">20%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-2xl p-5 border border-slate-100">
+                            <h4 className="font-semibold text-brand-dark mb-3">Normalization Formula</h4>
+                            <p className="text-sm text-slate-600">
+                                score = 1000 × (0.20 × wallet_age + 0.30 × holdings + 0.30 × defi_activity + 0.20 × dao_participation)
+                            </p>
+                            <p className="text-xs text-slate-500 mt-3">
+                                Each component is normalized to 0-1 using chain-specific ranges and decay windows.
+                            </p>
+                        </div>
                     </div>
 
                     <div className="overflow-x-auto">

@@ -204,6 +204,45 @@ export default function AppPage() {
                     </motion.div>
                 </div>
             </div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="max-w-6xl mx-auto mt-10 ens-card p-8"
+            >
+                <div className="flex flex-col gap-2 mb-6">
+                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Integration Notes</p>
+                    <h2 className="text-2xl font-display font-bold text-brand-dark">
+                        How Hyde integrates with Uniswap-style swaps
+                    </h2>
+                    <p className="text-sm text-slate-600">
+                        Hyde plugs into swap execution as a v4 Hook so DeFi integrators can add tier-gated privacy
+                        without changing their frontends or liquidity sources.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
+                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                        <h4 className="font-semibold text-brand-dark mb-3">Execution Path</h4>
+                        <ul className="space-y-2">
+                            <li>1. ENS ownership verified by backend scoring.</li>
+                            <li>2. Tier registered onchain in the registry contract.</li>
+                            <li>3. Hook checks tier + cooldown before swap execution.</li>
+                            <li>4. Swap routes through existing pools with privacy gates.</li>
+                        </ul>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 border border-slate-100">
+                        <h4 className="font-semibold text-brand-dark mb-3">Benefits for Integrators</h4>
+                        <ul className="space-y-2">
+                            <li>Lower MEV exposure via tier gating and cooldowns.</li>
+                            <li>Portable ENS identity across chains and apps.</li>
+                            <li>No new liquidity bootstrap—use existing Uniswap pools.</li>
+                            <li>Composable with wallet, router, and analytics layers.</li>
+                        </ul>
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 }
