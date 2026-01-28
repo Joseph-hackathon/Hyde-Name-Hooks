@@ -64,19 +64,16 @@ export default function LandingPage() {
     ];
     const pathways = [
         {
-            title: 'ENS App',
-            body: 'Register your name and manage records in one place.',
-            cta: 'Get started'
+            title: 'ENS Context',
+            body: 'Verify your ENS name and claim your tier to unlock privacy-enhanced execution.',
+            cta: 'Get started',
+            to: '/verify'
         },
         {
-            title: 'Hyde Hooks',
-            body: 'Unlock selective disclosure for private execution.',
-            cta: 'Explore Hyde'
-        },
-        {
-            title: 'Developer Docs',
-            body: 'Integrate ENS context into your dapp in minutes.',
-            cta: 'Read docs'
+            title: 'Hyde Swap',
+            body: 'Trade with selective disclosure and tier-gated protection on Uniswap v4.',
+            cta: 'Explore Hyde',
+            to: '/app'
         }
     ];
 
@@ -247,18 +244,22 @@ export default function LandingPage() {
                             Your gateway to selective disclosure.
                         </h2>
                         <p className="text-lg text-slate-600">
-                            Hyde makes ENS context portable. Keep your identity consistent while trading with privacy across the DeFi stack.
+                            Hyde links ENS identity to tiered execution, so you can trade with privacy while keeping eligibility verifiable.
                         </p>
                         <div className="grid gap-4 sm:grid-cols-2">
                             {pathways.map((item) => (
-                                <div key={item.title} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                                <Link
+                                    key={item.title}
+                                    to={item.to}
+                                    className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group"
+                                >
                                     <h4 className="text-xl font-bold text-brand-dark mb-2">{item.title}</h4>
                                     <p className="text-sm text-slate-600 mb-4">{item.body}</p>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-brand-blue">
                                         {item.cta}
-                                        <ArrowRight className="w-4 h-4" />
+                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -273,9 +274,9 @@ export default function LandingPage() {
                                 <div className="h-2 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 w-[78%]" />
                             </div>
                             <div className="grid grid-cols-3 gap-3 text-xs text-slate-500">
-                                <div className="bg-slate-50 rounded-2xl p-3">ENS 1.2y</div>
-                                <div className="bg-slate-50 rounded-2xl p-3">DAO 3</div>
-                                <div className="bg-slate-50 rounded-2xl p-3">DeFi 12</div>
+                                <div className="bg-slate-50 rounded-2xl p-3">ENS age</div>
+                                <div className="bg-slate-50 rounded-2xl p-3">DAO activity</div>
+                                <div className="bg-slate-50 rounded-2xl p-3">DeFi usage</div>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-500">
