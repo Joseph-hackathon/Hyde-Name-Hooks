@@ -2,6 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, animate } from 'framer-motion';
 import { Search, Shield, Zap, Lock } from 'lucide-react';
+import '@material/web/button/filled-button.js';
+import '@material/web/button/outlined-button.js';
+import '@material/web/button/text-button.js';
+import '@material/web/textfield/filled-text-field.js';
+import '@material/web/progress/linear-progress.js';
 
 // CountUp Animation Component
 const CountUp = ({ to, duration = 2 }: { to: number, duration?: number }) => {
@@ -111,16 +116,32 @@ export default function LandingPage() {
                     transition={{ duration: 0.8, delay: 0.4, ease: [0.05, 0.7, 0.1, 1.0] }}
                     className="max-w-2xl mx-auto mb-12"
                 >
-                    <div className="relative group">
-                        <input
-                            type="text"
-                            placeholder="alice.eth"
-                            className="w-full px-8 py-6 text-xl font-bold border-2 border-slate-200 rounded-2xl focus:border-brand-blue focus:outline-none transition-all shadow-sm group-hover:shadow-md bg-white/80 backdrop-blur-sm"
-                        />
-                        <button className="absolute right-3 top-1/2 -translate-y-1/2 bg-brand-blue text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-dark transition-all shadow-lg shadow-brand-blue/30 flex items-center gap-2">
-                            <Search className="w-5 h-5" />
-                            Claim Context
-                        </button>
+                    <div className="flex flex-col gap-4 md:flex-row md:items-end">
+                        <div className="flex-1">
+                            <md-filled-text-field
+                                label="ENS name"
+                                placeholder="alice.eth"
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                            <md-filled-button className="min-w-[180px]">
+                                <span className="flex items-center gap-2">
+                                    <Search className="w-5 h-5" />
+                                    Claim Context
+                                </span>
+                            </md-filled-button>
+                            <Link to="/verify" className="inline-flex">
+                                <md-outlined-button>Verify ENS</md-outlined-button>
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="mt-6 text-left">
+                        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400 mb-2">
+                            <span>Live privacy coverage</span>
+                            <span>Updating</span>
+                        </div>
+                        <md-linear-progress indeterminate className="w-full" />
                     </div>
                 </motion.div>
 
@@ -287,20 +308,9 @@ export default function LandingPage() {
                             <p className="text-slate-600 mb-6 max-w-lg mx-auto">
                                 Connect your ENS name and unlock selective disclosure execution on Uniswap v4.
                             </p>
-                            <div className="flex gap-4 justify-center flex-wrap">
-                                <a href="#" className="text-sm font-bold text-slate-600 hover:text-brand-blue transition-colors">
-                                    About
-                                </a>
-                                <a href="#" className="text-sm font-bold text-slate-600 hover:text-brand-blue transition-colors">
-                                    Blog
-                                </a>
-                                <a href="#" className="text-sm font-bold text-slate-600 hover:text-brand-blue transition-colors">
-                                    Docs
-                                </a>
-                            </div>
                             <div className="mt-6">
-                                <Link to="/app" className="bg-brand-blue text-white px-8 py-4 rounded-2xl font-bold hover:bg-brand-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-brand-blue/30 inline-block">
-                                    Launch App
+                                <Link to="/app" className="inline-flex">
+                                    <md-filled-button>Launch App</md-filled-button>
                                 </Link>
                             </div>
                         </div>
