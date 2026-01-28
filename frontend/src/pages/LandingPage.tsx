@@ -44,20 +44,20 @@ export default function LandingPage() {
     ];
     const pillars = [
         {
-            title: '선택적 공개',
-            body: '실제 점수는 숨기고, 필요한 티어만 증명해 프라이버시를 지키며 접근합니다.',
+            title: 'Selective Disclosure',
+            body: 'Hide raw scores and prove only the required tier to protect privacy.',
             icon: Shield,
             tint: 'bg-pastel-blue'
         },
         {
-            title: '티어 기반 실행',
-            body: 'ENS 컨텍스트로 Standard/Trusted/Elite를 구분해 풀 접근 권한을 자동 부여합니다.',
+            title: 'Tier-Gated Execution',
+            body: 'Use ENS context to classify Standard/Trusted/Elite and unlock pool access.',
             icon: Users,
             tint: 'bg-pastel-pink'
         },
         {
-            title: 'MEV 보호 훅',
-            body: 'Uniswap v4 Hook으로 실행 전 검증과 쿨다운을 적용해 샌드위치 위험을 줄입니다.',
+            title: 'MEV-Protected Hook',
+            body: 'Apply pre-trade checks and cooldowns via a Uniswap v4 Hook to reduce sandwich risk.',
             icon: Globe,
             tint: 'bg-pastel-green'
         }
@@ -189,16 +189,6 @@ export default function LandingPage() {
                             </motion.div>
                         ))}
                     </div>
-                </div>
-            </section>
-
-            <section className="py-10 border-y border-slate-100 bg-white/70">
-                <div className="container mx-auto px-6 flex flex-wrap gap-4 items-center justify-center text-sm font-semibold text-slate-500">
-                    {nameChips.map((chip) => (
-                        <span key={chip.label} className="ens-chip hover:shadow-md transition-shadow">
-                            {chip.label}
-                        </span>
-                    ))}
                 </div>
             </section>
 
