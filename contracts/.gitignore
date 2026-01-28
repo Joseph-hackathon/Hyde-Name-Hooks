@@ -1,0 +1,14 @@
+# Hardhat files
+cache/
+artifacts/
+
+# Node
+node_modules/
+.env
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/

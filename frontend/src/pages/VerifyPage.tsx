@@ -1,0 +1,238 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useWallet } from '../contexts/WalletContext';
+import Button from '../components/ui/Button';
+
+export default function VerifyPage() {
+    const { isConnected, ensName, contextScore, setContextScore } = useWallet();
+    const [searchName, setSearchName] = useState('');
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+    const handleVerify = async () => {
+        if (!searchName) return;
+
+        setIsVerifying(true);
+        setVerificationStatus('idle');
+
+        // Simulate verification
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Mock: Generate a score based on name length (just for demo)
+        const mockScore = 700 + Math.floor(Math.random() * 300);
+        setContextScore(mockScore);
+        setVerificationStatus('success');
+        setIsVerifying(false);
+    };
+
+    if (!isConnected) {
+        return (
+            <div className="bg-background min-h-screen flex items-center justify-center p-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center max-w-md"
+                >
+                    <div className="w-20 h-20 bg-pastel-blue rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Shield className="w-10 h-10 text-brand-blue" />
+                    </div>
+                    <h2 className="text-3xl font-display font-bold text-brand-dark mb-4">
+                        Connect to Claim Context
+                    </h2>
+                    <p className="text-slate-600 mb-8">
+                        Connect your wallet to register your ENS name and unlock selective disclosure privacy.
+                    </p>
+                    <Link to="/">
+                        <Button>Back to Home</Button>
+                    </Link>
+                </motion.div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-background min-h-screen p-6">
+            <div className="max-w-4xl mx-auto">
+
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-12"
+                >
+                    <h1 className="text-5xl font-display font-bold text-brand-dark mb-4">
+                        Claim Your Context
+                    </h1>
+                    <p className="text-lg text-slate-600">
+                        Your ENS name unlocks selective disclosure privacy. <strong>Prove you're eligible — without revealing everything.</strong>
+                    </p>
+                </motion.div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    {/* Main Verification Card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="md:col-span-2 bg-white rounded-[2rem] p-8 shadow-soft border border-slate-100"
+                    >
+                        <h2 className="text-2xl font-display font-bold text-brand-dark mb-6">
+                            Enter Your ENS Name
+                        </h2>
+
+                        {/* Search Input */}
+                        <div className="relative mb-6">
+                            <input
+                                type="text"
+                                value={searchName}
+                                onChange={(e) => setSearchName(e.target.value)}
+                                placeholder="alice.eth"
+                                className="w-full px-6 py-4 text-xl font-bold border-2 border-slate-100 rounded-2xl focus:border-brand-blue focus:outline-none transition-colors"
+                            />
+                            <Button
+                                onClick={handleVerify}
+                                loading={isVerifying}
+                                disabled={!searchName}
+                                className="absolute right-2 top-2"
+                            >
+                                <Search className="w-4 h-4" />
+                                Claim
+                            </Button>
+                        </div>
+
+                        {/* Verification Status */}
+                        {verificationStatus === 'success' && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="bg-pastel-green p-6 rounded-2xl border border-green-200 mb-6"
+                            >
+                                <div className="flex items-start gap-4">
+                                    <CheckCircle className="w-6 h-6 text-green-600 mt-1" />
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-brand-dark mb-2">Context Claimed!</h3>
+                                        <p className="text-slate-600 mb-4">
+                                            Your ENS context has been registered. You can now access privacy-enhanced execution on Uniswap v4.
+                                        </p>
+                                        <Link to="/app">
+                                            <Button size="sm">Start Trading</Button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* How Selective Disclosure Works */}
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-brand-dark mb-4">How Selective Disclosure Works</h3>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 bg-pastel-blue rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <Lock className="w-5 h-5 text-brand-blue" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-brand-dark mb-1">Prove Tier, Hide Score</h4>
+                                    <p className="text-sm text-slate-600">
+                                        You only reveal your tier level (Standard/Trusted/Elite), never your exact score or transaction history.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 bg-pastel-pink rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <Shield className="w-5 h-5 text-pink-600" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-brand-dark mb-1">Onchain Verification</h4>
+                                    <p className="text-sm text-slate-600">
+                                        Your ENS context is calculated from public blockchain data: holdings, DAO votes, DeFi activity.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 bg-pastel-green rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-brand-dark mb-1">Access Privacy Pools</h4>
+                                    <p className="text-sm text-slate-600">
+                                        High-tier users unlock access to privacy-enhanced pools with reduced MEV exposure.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+
+                        {/* Current Score Card */}
+                        {contextScore && (
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="bg-pastel-pink rounded-[2rem] p-6 shadow-soft relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <TrendingUp className="w-32 h-32" />
+                                </div>
+                                <h3 className="text-lg font-bold text-brand-dark mb-1">Your Context</h3>
+                                <div className="text-5xl font-display font-black text-brand-dark mb-3">
+                                    {contextScore}
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-600">Tier</span>
+                                        <span className="font-bold text-brand-dark">
+                                            {contextScore > 900 ? '🥇 Elite' : contextScore > 800 ? '🥈 Trusted' : '🥉 Standard'}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-white/50 rounded-full h-2">
+                                        <div
+                                            className="bg-gradient-to-r from-pink-400 to-pink-600 h-2 rounded-full transition-all duration-1000"
+                                            style={{ width: `${(contextScore / 1000) * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Privacy Benefits */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="bg-pastel-blue rounded-[2rem] p-6 shadow-soft"
+                        >
+                            <h3 className="text-lg font-bold text-brand-dark mb-4">Privacy Benefits</h3>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <Lock className="w-5 h-5 text-brand-blue" />
+                                    <span className="text-sm font-medium text-brand-dark">Selective Disclosure</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Shield className="w-5 h-5 text-brand-blue" />
+                                    <span className="text-sm font-medium text-brand-dark">MEV Protection</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <CheckCircle className="w-5 h-5 text-brand-blue" />
+                                    <span className="text-sm font-medium text-brand-dark">Tier-Gated Access</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <TrendingUp className="w-5 h-5 text-brand-blue" />
+                                    <span className="text-sm font-medium text-brand-dark">Better Execution</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
