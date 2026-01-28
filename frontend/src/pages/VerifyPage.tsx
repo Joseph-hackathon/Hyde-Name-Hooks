@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
-import '@material/web/textfield/filled-text-field.js';
-import '@material/web/button/filled-button.js';
 
 export default function VerifyPage() {
     const { isConnected, contextScore, setContextScore } = useWallet();
@@ -89,25 +86,20 @@ export default function VerifyPage() {
 
                         {/* Search Input */}
                         <div className="mb-6 flex flex-wrap items-center gap-3">
-                            <md-filled-text-field
-                                label="ENS name"
-                                placeholder="alice.eth"
-                                className="flex-1"
+                            <input
+                                type="text"
                                 value={searchName}
-                                onInput={(event: FormEvent<HTMLElement>) => {
-                                    const target = event.currentTarget as HTMLInputElement;
-                                    setSearchName(target.value);
-                                }}
+                                onChange={(event) => setSearchName(event.target.value)}
+                                placeholder="alice.eth"
+                                className="flex-1 min-w-[220px] px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 text-base font-semibold text-brand-dark outline-none focus:border-brand-blue focus:bg-white transition-colors"
                             />
-                            <md-filled-button
+                            <Button
                                 onClick={handleVerify}
                                 disabled={!searchName || isVerifying}
                             >
-                                <span className="flex items-center gap-2">
-                                    <Search className="w-4 h-4" />
-                                    {isVerifying ? 'Verifying...' : 'Claim'}
-                                </span>
-                            </md-filled-button>
+                                <Search className="w-4 h-4" />
+                                {isVerifying ? 'Verifying...' : 'Claim'}
+                            </Button>
                         </div>
 
                         {/* Verification Status */}

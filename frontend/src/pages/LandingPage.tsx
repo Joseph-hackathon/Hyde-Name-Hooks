@@ -1,11 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Globe, Shield, Sparkles, Users, Wallet } from 'lucide-react';
-import '@material/web/button/filled-button.js';
-import '@material/web/button/outlined-button.js';
-import '@material/web/button/text-button.js';
-import '@material/web/textfield/filled-text-field.js';
-import '@material/web/progress/linear-progress.js';
+import Button from '../components/ui/Button';
 
 export default function LandingPage() {
     const nameChips = [
@@ -76,15 +72,13 @@ export default function LandingPage() {
                         </p>
                         <div className="flex flex-wrap gap-4 items-center">
                             <Link to="/app" className="inline-flex">
-                                <md-filled-button>
-                                    <span className="flex items-center gap-2">
-                                        Launch App
-                                        <ArrowRight className="w-4 h-4" />
-                                    </span>
-                                </md-filled-button>
+                                <Button size="lg">
+                                    Launch App
+                                    <ArrowRight className="w-4 h-4" />
+                                </Button>
                             </Link>
                             <Link to="/verify" className="inline-flex">
-                                <md-outlined-button>Verify ENS</md-outlined-button>
+                                <Button variant="outline" size="lg">Verify ENS</Button>
                             </Link>
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-slate-500">
@@ -104,21 +98,23 @@ export default function LandingPage() {
                             <p className="text-xs uppercase tracking-[0.35em] text-slate-400 mb-2">Your name</p>
                             <h2 className="text-3xl font-bold text-brand-dark">Claim ENS context</h2>
                         </div>
-                        <md-filled-text-field
-                            label="ENS name"
+                        <input
+                            type="text"
                             placeholder="myname.eth"
-                            className="w-full"
+                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 text-base font-semibold text-brand-dark outline-none focus:border-brand-blue focus:bg-white transition-colors"
                         />
                         <div className="flex gap-3 flex-wrap">
-                            <md-filled-button className="min-w-[180px]">Claim context</md-filled-button>
-                            <md-text-button>Learn more</md-text-button>
+                            <Button className="min-w-[180px]">Claim context</Button>
+                            <Button variant="ghost">Learn more</Button>
                         </div>
                         <div>
                             <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400 mb-2">
                                 <span>Live privacy coverage</span>
                                 <span>Updating</span>
                             </div>
-                            <md-linear-progress indeterminate className="w-full" />
+                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-2 w-2/3 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 animate-pulse rounded-full" />
+                            </div>
                         </div>
                     </motion.div>
                 </div>
@@ -231,7 +227,7 @@ export default function LandingPage() {
                             Connect your ENS name and unlock selective disclosure execution on Uniswap v4.
                         </p>
                         <Link to="/app" className="inline-flex">
-                            <md-filled-button>Launch App</md-filled-button>
+                            <Button size="lg">Launch App</Button>
                         </Link>
                     </div>
                 </div>

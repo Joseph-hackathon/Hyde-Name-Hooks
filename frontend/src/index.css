@@ -1,26 +1,20 @@
 @import "tailwindcss";
-@import "@fontsource/roboto/400.css";
-@import "@fontsource/roboto/500.css";
-@import "@fontsource/roboto/700.css";
-@import "@fontsource/roboto/900.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
 @config "../tailwind.config.js";
 
 @layer base {
   :root {
     --background: 255 255 255;
     --foreground: 15 23 42;
-    --md-sys-color-primary: #4338ca;
-    --md-sys-color-on-primary: #ffffff;
-    --md-sys-color-primary-container: #eef2ff;
-    --md-sys-color-on-primary-container: #1e1b4b;
-    --md-sys-color-surface: #ffffff;
-    --md-sys-color-on-surface: #0f172a;
-    --md-sys-color-outline: #e2e8f0;
   }
 
   body {
     @apply bg-background text-brand-dark antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
 }
 
@@ -36,38 +30,4 @@
   .ens-pill {
     @apply rounded-full;
   }
-}
-
-md-filled-button {
-  --md-filled-button-container-shape: 999px;
-  --md-filled-button-container-color: #4338ca;
-  --md-filled-button-label-text-color: #ffffff;
-  --md-filled-button-hover-container-color: #3730a3;
-}
-
-md-outlined-button {
-  --md-outlined-button-container-shape: 999px;
-  --md-outlined-button-outline-color: #cbd5f5;
-  --md-outlined-button-label-text-color: #4338ca;
-  --md-outlined-button-hover-container-color: rgba(67, 56, 202, 0.06);
-}
-
-md-text-button {
-  --md-text-button-container-shape: 999px;
-  --md-text-button-label-text-color: #4338ca;
-}
-
-md-filled-text-field {
-  --md-filled-text-field-container-shape: 22px;
-  --md-filled-text-field-container-color: #f8fafc;
-  --md-filled-text-field-active-indicator-color: #e2e8f0;
-  --md-filled-text-field-focus-active-indicator-color: #4338ca;
-  --md-filled-text-field-hover-active-indicator-color: #cbd5f5;
-  --md-filled-text-field-input-text-color: #0f172a;
-  --md-filled-text-field-label-text-color: #64748b;
-}
-
-md-linear-progress {
-  --md-linear-progress-active-indicator-color: #4338ca;
-  --md-linear-progress-track-color: #e2e8f0;
 }
