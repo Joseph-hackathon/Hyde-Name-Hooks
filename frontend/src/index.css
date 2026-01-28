@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import "@fontsource/roboto/400.css";
+@import "@fontsource/roboto/500.css";
+@import "@fontsource/roboto/700.css";
+@import "@fontsource/roboto/900.css";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 15 23 42;
+  }
+
+  body {
+    @apply bg-background text-brand-dark antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .ens-card {
+    @apply bg-white rounded-3xl shadow-soft border border-black/5 transition-all duration-300;
+  }
+}
