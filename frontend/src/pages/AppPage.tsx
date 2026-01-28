@@ -5,7 +5,7 @@ import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 
 export default function AppPage() {
-    const { isConnected, ensName, contextScore, balance, address } = useWallet();
+    const { isConnected, ensName, contextScore, balance, address, tierName } = useWallet();
 
     if (!isConnected) {
         return (
@@ -35,13 +35,18 @@ export default function AppPage() {
         );
     }
 
-    const tier = contextScore && contextScore > 900 ? 'Elite' :
-        contextScore && contextScore > 800 ? 'Trusted' : 'Standard';
+    const tier = tierName || (contextScore && contextScore > 900 ? 'Elite' :
+        contextScore && contextScore > 800 ? 'Trusted' : 'Standard');
+    const tabs = [
+        { label: 'Swap', to: '/app' },
+        { label: 'Verify', to: '/verify' },
+        { label: 'Pools', to: '/pools' },
+    ];
 
     return (
         <div className="bg-background min-h-screen p-6">
             {/* App Header */}
-            <header className="max-w-6xl mx-auto flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-10">
+            <header className="max-w-6xl mx-auto flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-6">
                 <div className="space-y-2">
                     <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-blue transition-colors text-sm">
                         <ArrowLeft className="w-4 h-4" />
@@ -63,6 +68,21 @@ export default function AppPage() {
                     </div>
                 </div>
             </header>
+
+            <div className="max-w-6xl mx-auto mb-8 flex flex-wrap items-center gap-3">
+                <div className="ens-chip">
+                    {ensName || 'Unnamed'} {tier ? `• ${tier}` : ''}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    {tabs.map((tab) => (
+                        <Link key={tab.to} to={tab.to} className="inline-flex">
+                            <Button variant={tab.to === '/app' ? 'primary' : 'ghost'} size="sm">
+                                {tab.label}
+                            </Button>
+                        </Link>
+                    ))}
+                </div>
+            </div>
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
 

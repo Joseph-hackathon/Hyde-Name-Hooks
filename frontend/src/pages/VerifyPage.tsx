@@ -4,27 +4,41 @@ import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
+import { verifyEns } from '../lib/api';
 
 export default function VerifyPage() {
-    const { isConnected, contextScore, setContextScore } = useWallet();
+    const { isConnected, contextScore, setContextScore, address, setEnsName, ensName, tierName } = useWallet();
     const [searchName, setSearchName] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const tabs = [
+        { label: 'Swap', to: '/app' },
+        { label: 'Verify', to: '/verify' },
+        { label: 'Pools', to: '/pools' },
+    ];
 
     const handleVerify = async () => {
-        if (!searchName) return;
+        if (!searchName || !address) return;
 
         setIsVerifying(true);
         setVerificationStatus('idle');
+        setErrorMessage(null);
 
-        // Simulate verification
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Mock: Generate a score based on name length (just for demo)
-        const mockScore = 700 + Math.floor(Math.random() * 300);
-        setContextScore(mockScore);
-        setVerificationStatus('success');
-        setIsVerifying(false);
+        try {
+            const result = await verifyEns(searchName.trim(), address);
+            const score =
+                result.tierName === 'Elite' ? 920 :
+                    result.tierName === 'Trusted' ? 850 : 720;
+            setContextScore(score);
+            setEnsName(result.ensName);
+            setVerificationStatus('success');
+        } catch (error: any) {
+            setVerificationStatus('error');
+            setErrorMessage(error?.message || 'Verification failed');
+        } finally {
+            setIsVerifying(false);
+        }
     };
 
     if (!isConnected) {
@@ -60,7 +74,7 @@ export default function VerifyPage() {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-10 space-y-2"
+                    className="mb-6 space-y-2"
                 >
                     <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Verify</p>
                     <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-dark">
@@ -70,6 +84,21 @@ export default function VerifyPage() {
                         Your ENS name unlocks selective disclosure privacy. <strong>Prove you're eligible — without revealing everything.</strong>
                     </p>
                 </motion.div>
+
+                <div className="mb-8 flex flex-wrap items-center gap-3">
+                    <div className="ens-chip">
+                        {ensName || 'Unnamed'} {tierName ? `• ${tierName}` : ''}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {tabs.map((tab) => (
+                            <Link key={tab.to} to={tab.to} className="inline-flex">
+                                <Button variant={tab.to === '/verify' ? 'primary' : 'ghost'} size="sm">
+                                    {tab.label}
+                                </Button>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
@@ -122,6 +151,11 @@ export default function VerifyPage() {
                                     </div>
                                 </div>
                             </motion.div>
+                        )}
+                        {verificationStatus === 'error' && errorMessage && (
+                            <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-sm text-red-700 mb-6">
+                                {errorMessage}
+                            </div>
                         )}
 
                         {/* How Selective Disclosure Works */}

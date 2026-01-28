@@ -4,6 +4,7 @@ import { Lock, Shield, TrendingUp, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
+import { checkAccess } from '../lib/api';
 
 interface Pool {
     id: string;
@@ -70,14 +71,44 @@ const MOCK_POOLS: Pool[] = [
 ];
 
 export default function PoolsPage() {
-    const { contextScore } = useWallet();
+    const { contextScore, address, isConnected, ensName, tierName } = useWallet();
     const [filter, setFilter] = React.useState<'all' | 'privacy' | 'open'>('all');
+    const [accessMap, setAccessMap] = React.useState<Record<string, boolean>>({});
+    const tabs = [
+        { label: 'Swap', to: '/app' },
+        { label: 'Verify', to: '/verify' },
+        { label: 'Pools', to: '/pools' },
+    ];
 
     const filteredPools = MOCK_POOLS.filter(pool => {
         if (filter === 'privacy') return pool.isGated;
         if (filter === 'open') return !pool.isGated;
         return true;
     });
+
+    React.useEffect(() => {
+        if (!isConnected || !address) {
+            setAccessMap({});
+            return;
+        }
+
+        const loadAccess = async () => {
+            const entries = await Promise.all(
+                MOCK_POOLS.map(async (pool) => {
+                    if (!pool.isGated) return [pool.id, true] as const;
+                    try {
+                        const result = await checkAccess(address, pool.minScore >= 900 ? 2 : pool.minScore >= 800 ? 1 : 0);
+                        return [pool.id, result.hasAccess] as const;
+                    } catch {
+                        return [pool.id, contextScore ? contextScore >= pool.minScore : false] as const;
+                    }
+                })
+            );
+            setAccessMap(Object.fromEntries(entries));
+        };
+
+        loadAccess();
+    }, [address, isConnected, contextScore]);
 
     return (
         <div className="bg-background min-h-screen p-6">
@@ -87,7 +118,7 @@ export default function PoolsPage() {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-8 space-y-2"
+                    className="mb-6 space-y-2"
                 >
                     <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Pools</p>
                     <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-dark">
@@ -97,6 +128,21 @@ export default function PoolsPage() {
                         Browse ENS context-gated pools. <strong>Prove your tier, keep your privacy, access better execution.</strong>
                     </p>
                 </motion.div>
+
+                <div className="mb-8 flex flex-wrap items-center gap-3">
+                    <div className="ens-chip">
+                        {ensName || 'Unnamed'} {tierName ? `• ${tierName}` : ''}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {tabs.map((tab) => (
+                            <Link key={tab.to} to={tab.to} className="inline-flex">
+                                <Button variant={tab.to === '/pools' ? 'primary' : 'ghost'} size="sm">
+                                    {tab.label}
+                                </Button>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
 
                 {/* Filters */}
                 <motion.div
@@ -138,7 +184,7 @@ export default function PoolsPage() {
                 {/* Pools Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredPools.map((pool, index) => {
-                        const hasAccess = !pool.isGated || (contextScore && contextScore >= pool.minScore);
+                        const hasAccess = accessMap[pool.id] ?? (!pool.isGated || (contextScore && contextScore >= pool.minScore));
 
                         return (
                             <motion.div

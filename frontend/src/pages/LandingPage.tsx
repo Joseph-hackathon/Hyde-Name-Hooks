@@ -192,8 +192,24 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="py-8 border-y border-slate-100 bg-white/70">
-                <div className="container mx-auto px-6 flex flex-wrap gap-4 items-center justify-center text-sm font-semibold text-slate-500">
+            <section className="relative py-10 border-y border-slate-100 bg-white/70 overflow-hidden">
+                <div className="absolute left-8 top-6 h-16 w-32 rounded-sm border border-indigo-200/60 bg-indigo-50/70">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(99,102,241,0.25)_1px,transparent_0)] [background-size:6px_6px]" />
+                    <motion.div
+                        className="absolute -left-4 top-4 h-5 w-5 rounded-sm bg-white shadow-sm"
+                        animate={{ x: [0, 120, 0] }}
+                        transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
+                    />
+                </div>
+                <div className="absolute right-10 bottom-4 h-12 w-36 rounded-sm border border-fuchsia-200/60 bg-fuchsia-50/70">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(236,72,153,0.2)_1px,transparent_0)] [background-size:6px_6px]" />
+                    <motion.div
+                        className="absolute -left-3 top-3 h-4 w-4 rounded-sm bg-white shadow-sm"
+                        animate={{ x: [0, 130, 0] }}
+                        transition={{ duration: 14, repeat: Infinity, ease: 'linear', delay: 1 }}
+                    />
+                </div>
+                <div className="relative container mx-auto px-6 flex flex-wrap gap-4 items-center justify-center text-sm font-semibold text-slate-500">
                     {nameChips.map((chip) => (
                         <span key={chip.label} className="ens-chip hover:shadow-md transition-shadow">
                             {chip.label}
@@ -202,7 +218,15 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="py-20 container mx-auto px-6">
+            <section className="relative py-20 container mx-auto px-6">
+                <div className="absolute -left-6 top-8 h-20 w-40 rounded-sm border border-blue-200/60 bg-blue-50/70">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.25)_1px,transparent_0)] [background-size:6px_6px]" />
+                    <motion.div
+                        className="absolute -left-4 top-5 h-5 w-5 rounded-sm bg-white shadow-sm"
+                        animate={{ x: [0, 150, 0] }}
+                        transition={{ duration: 18, repeat: Infinity, ease: 'linear', delay: 0.8 }}
+                    />
+                </div>
                 <div className="grid gap-8 lg:grid-cols-3">
                     {pillars.map((pillar) => {
                         const Icon = pillar.icon;
@@ -226,7 +250,23 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="py-20 bg-slate-50">
+            <section className="relative py-20 bg-slate-50 overflow-hidden">
+                <div className="absolute right-10 top-10 h-28 w-28 rounded-sm border border-fuchsia-200/60 bg-fuchsia-50/70">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(236,72,153,0.22)_1px,transparent_0)] [background-size:6px_6px]" />
+                    <motion.div
+                        className="absolute -left-4 top-6 h-5 w-5 rounded-sm bg-white shadow-sm"
+                        animate={{ y: [0, 70, 0] }}
+                        transition={{ duration: 14, repeat: Infinity, ease: 'linear', delay: 0.4 }}
+                    />
+                </div>
+                <div className="absolute left-8 bottom-10 h-16 w-44 rounded-sm border border-indigo-200/60 bg-indigo-50/70">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(99,102,241,0.25)_1px,transparent_0)] [background-size:6px_6px]" />
+                    <motion.div
+                        className="absolute -left-4 top-4 h-5 w-5 rounded-sm bg-white shadow-sm"
+                        animate={{ x: [0, 170, 0] }}
+                        transition={{ duration: 17, repeat: Infinity, ease: 'linear' }}
+                    />
+                </div>
                 <div className="container mx-auto px-6 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-center">
                     <div className="space-y-6">
                         <h2 className="text-4xl md:text-5xl font-black text-brand-dark">
@@ -272,7 +312,15 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="py-20 container mx-auto px-6">
+            <section className="relative py-20 container mx-auto px-6">
+                <div className="absolute right-0 top-0 h-24 w-48 rounded-sm border border-blue-200/60 bg-blue-50/70">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.2)_1px,transparent_0)] [background-size:6px_6px]" />
+                    <motion.div
+                        className="absolute -left-4 top-5 h-5 w-5 rounded-sm bg-white shadow-sm"
+                        animate={{ x: [0, 160, 0] }}
+                        transition={{ duration: 18, repeat: Infinity, ease: 'linear', delay: 0.6 }}
+                    />
+                </div>
                 <div className="grid gap-6 md:grid-cols-3">
                     <div className="rounded-[2rem] border border-slate-100 p-8 bg-white shadow-soft hover:shadow-md transition-shadow">
                         <p className="text-4xl font-black text-brand-dark">638k+</p>
@@ -289,7 +337,15 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="pb-24 container mx-auto px-6">
+            <section className="relative pb-24 container mx-auto px-6">
+                <div className="absolute left-8 -top-6 h-16 w-36 rounded-sm border border-fuchsia-200/60 bg-fuchsia-50/70">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(236,72,153,0.2)_1px,transparent_0)] [background-size:6px_6px]" />
+                    <motion.div
+                        className="absolute -left-3 top-3 h-4 w-4 rounded-sm bg-white shadow-sm"
+                        animate={{ x: [0, 120, 0] }}
+                        transition={{ duration: 15, repeat: Infinity, ease: 'linear', delay: 0.9 }}
+                    />
+                </div>
                 <div className="bg-gradient-to-br from-pastel-blue via-pastel-pink to-pastel-green p-1 rounded-[2.5rem]">
                     <div className="bg-white rounded-[2.4rem] px-10 py-12 text-center space-y-4">
                         <h3 className="text-3xl md:text-4xl font-black text-brand-dark">
