@@ -35,7 +35,7 @@ export default function VerifyPage() {
         );
     }, [chainId]);
     const registryAddress = chainConfig.contracts.registry;
-    const hookAddress = chainConfig.contracts.hook;
+    const explorerBase = chainConfig.blockExplorer;
     const claimStorageKey = address ? `hyde_claim_result_${address.toLowerCase()}` : null;
     const tabs = [
         { label: 'Swap', to: '/app' },
@@ -89,6 +89,7 @@ export default function VerifyPage() {
             const parsed = JSON.parse(stored);
             if (parsed?.ensName && parsed?.txHash) {
                 setClaimResult(parsed);
+                setEnsName(parsed.ensName);
             }
         } catch {
             // ignore invalid cached data
@@ -218,7 +219,7 @@ export default function VerifyPage() {
                                             Claim Summary
                                         </p>
                                         <h3 className="text-xl font-display font-bold text-brand-dark">
-                                            {claimResult?.ensName || ensName || 'Unnamed'}
+                                            {claimResult?.ensName || ensName || searchName || 'Unnamed'}
                                         </h3>
                                     </div>
                                     <span className="ens-chip">Claimed</span>
@@ -242,14 +243,19 @@ export default function VerifyPage() {
                                             {claimResult?.totalScore ?? contextScore ?? 0}
                                         </span>
                                     </div>
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <span className="text-slate-500">Registry Contract</span>
-                                        <span className="font-mono text-xs text-brand-dark">{registryAddress}</span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <span className="text-slate-500">Hook Contract</span>
-                                        <span className="font-mono text-xs text-brand-dark">{hookAddress}</span>
-                                    </div>
+                                    {claimResult && (
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            <span className="text-slate-500">Claim Contract</span>
+                                            <a
+                                                href={`${explorerBase}/address/${registryAddress}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="font-mono text-xs text-brand-dark hover:text-brand-blue transition-colors"
+                                            >
+                                                {registryAddress}
+                                            </a>
+                                        </div>
+                                    )}
                                     {claimResult?.txHash && (
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                             <span className="text-slate-500">Tx Hash</span>
