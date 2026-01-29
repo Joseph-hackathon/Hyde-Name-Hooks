@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 git commit -m "$(cat <<'EOF'
-fix: enforce fredoka fonts globally
+chore: remove temp commit script
 
-Apply font variables at html/body and inherit for form controls
-to ensure consistent typography in production.
+Remove temporary commit helper script from repo.
 EOF
 )"
