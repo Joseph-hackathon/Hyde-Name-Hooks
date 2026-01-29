@@ -1,93 +1,324 @@
-# Hyde-Name-Hooks
+# Hyde Name Hooks
 
-Hyde enables selective-disclosure execution privacy for DEX trading by gating access with ENS context tiers and a Uniswap v4 hook.
+## Overview
 
-**Core concept:** _Hide the trade. Anchor the name._
+Hyde Name Hooks is a privacy-preserving Uniswap v4 Hook framework that enables **selective disclosure swaps**.
 
-## Background & Market Research
+Instead of revealing full wallet history, balances, or identity, users prove only what matters:
 
-We referenced the ENS and Uniswap ecosystems to define the UX pattern, naming layer, and swap execution surface:
-- [ENS main site](https://ens.domains/) and the [ENS Manager (Sepolia)](https://sepolia.app.ens.domains/) for the profile UX and context framing.
-- [ENS documentation](https://docs.ens.domains/) for reverse resolution and name ownership flow.
-- [Uniswap v4](https://docs.uniswap.org/contracts/v4/overview) and [v4 Hooks](https://docs.uniswap.org/contracts/v4/concepts/hooks) to validate the hook-based gating model.
+- “I am an ENS reputation tier ≥ X”
+- “I am eligible to trade in this pool”
+
+This creates a new primitive: **verifiable privacy with contextual identity**.
+
+---
+
+## Background & Market Context
+
+### Why we started Hyde Name Hooks
+
+Hyde Name Hooks began from a simple observation:
+
+> DeFi is becoming global finance infrastructure, but it still leaks too much information.
+
+In 2026, the biggest crypto trend is no longer just scaling or liquidity.
+It is about **privacy, identity, and trust layers** that can support real-world adoption.
+
+We designed Hyde because the market is converging on three realities:
+
+1. **On-chain finance needs privacy to reach mainstream users**
+2. **Privacy without accountability breaks market integrity**
+3. **Identity primitives like ENS are evolving into reputation + context systems**
+
+---
+
+### Macro Trend: Privacy is the next missing layer
+
+Ethereum’s roadmap increasingly treats privacy as a core requirement, not an optional feature.
+
+- Users need protection from surveillance
+- Protocols need verifiable integrity
+
+Referenced resource:
+
+- [Ethereum Roadmap — Privacy as a Public Good](https://ethereum.org/en/roadmap/privacy/)
+
+Vitalik has also emphasized that future crypto applications must focus on **privacy-preserving mechanisms with legitimacy**, not pure anonymity.
+
+- [Vitalik Buterin — Future Ideas on Privacy + Identity (2025)](https://vitalik.eth.limo/general/2025/08/12/ideas.html)
+
+---
+
+### Market Signal: Crypto 2026 will be about trust infrastructure
+
+Major ecosystem investors highlight that the next wave is:
+
+- programmable identity
+- reputation
+- privacy-first financial UX
+
+Referenced resources:
+
+- [a16z Crypto — Big Ideas We’re Excited About for 2026](https://a16zcrypto.com/posts/article/big-ideas-things-excited-about-crypto-2026/)
+- [Coinbase Ventures — Ideas We Are Excited For in 2026](https://www.coinbase.com/blog/Coinbase-Ventures-Ideas-we-are-excited-for-in-2026)
+
+These reports consistently point toward **context-aware identity + privacy rails** as the next category-defining primitive.
+
+---
+
+### DeFi Reality: Transparency creates extractive dynamics
+
+Uniswap and open liquidity markets are powerful, but transparency introduces:
+
+- MEV exploitation
+- front-running
+- strategy leakage
+
+Referenced resource:
+
+- [Flashbots — MEV and Transaction Privacy](https://www.flashbots.net/)
+
+Uniswap v4 explicitly encourages new Hook designs that:
+
+- reduce unnecessary information exposure
+- preserve verifiability
+- improve execution quality
+
+- [Uniswap v4 Hooks Overview](https://docs.uniswap.org/contracts/v4/overview)
+
+---
+
+### ENS Evolution: Names are becoming programmable trust
+
+ENS is no longer only a domain system.
+
+It is increasingly used as:
+
+- social identity
+- wallet reputation anchor
+- composable credential layer
+
+Referenced resource:
+
+- [ENS Documentation](https://docs.ens.domains/)
+
+Hyde Name Hooks builds on this shift:
+
+> Your ENS name is not just an address label.
+> It becomes a contextual identity primitive that can gate privacy responsibly.
+
+---
+
+### Core Insight
+
+The world does not need another swap UI.
+
+The world needs:
+
+- privacy that does not destroy accountability
+- identity that does not reveal everything
+- DeFi infrastructure that can support real users safely
+
+That is why Hyde Name Hooks exists.
+
+---
 
 ## Problem
 
-DEX swaps expose user intent and history, enabling MEV and copy-trading. At the same time, most privacy tools are UX-heavy and break composability. Users need a way to prove eligibility (e.g., reputation, activity tier) without revealing raw scores or wallet history.
+Uniswap pools are open by design.
+
+That means:
+
+- Anyone can trade
+- Anyone can sybil-spam pools
+- Privacy solutions often remove accountability
+
+The industry lacks a mechanism where:
+
+- Trade details stay private
+- Eligibility stays verifiable
+
+---
 
 ## Solution
 
-Hyde uses ENS-linked context tiers to enable selective disclosure. Users prove they are Standard/Trusted/Elite via on-chain registration without exposing the underlying scoring data. A Uniswap v4 hook enforces tier gating and cooldowns at execution time.
+Hyde Name Hooks introduces two combined primitives:
+
+### 1. Selective Disclosure Hook
+
+Users hide trade details, but prove eligibility.
+
+Only minimal signals are revealed:
+
+- Trusted tier
+- Reputation score threshold
+
+### 2. ENS Context Gating Hook
+
+ENS names become programmable trust identities.
+
+Example:
+
+- Only ENS holders with reputation tier ≥ Bronze can swap
+- Prevents sybil privacy pool abuse
+
+---
 
 ## Key Features
 
-- **Selective disclosure tiering** (Standard/Trusted/Elite)
-- **ENS-backed identity anchoring**
-- **On-chain registry + hook gating**
-- **Privacy-focused swap experience**
-- **Multi-chain readiness** (Sepolia, Base Sepolia, Unichain Sepolia)
+- **Selective disclosure privacy swaps**
+- **ENS-based contextual reputation tiers**
+- **Sybil resistance for privacy pools**
+- **Uniswap v4 Hook integration**
+- **Verifiable on-chain eligibility**
+
+---
 
 ## Platform Architecture
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant Frontend
+    participant ENS as ENS Resolver
+    participant HydeHook as Hyde Name Hook
+    participant Uniswap as Uniswap v4 Pool
+
+    User->>Frontend: Connect wallet + ENS
+    Frontend->>ENS: Resolve ENS reputation tier
+    ENS-->>Frontend: Tier proof signal
+
+    User->>Frontend: Request swap
+    Frontend->>HydeHook: Submit eligibility proof
+
+    HydeHook->>HydeHook: Verify selective disclosure proof
+    HydeHook-->>Uniswap: Allow swap execution
+
+    Uniswap-->>User: Swap completed privately
 ```
-┌─────────────┐
-│  Frontend   │ ← React + TypeScript UI
-└─────┬───────┘
-      │
-      ├─────────────────┐
-      │                 │
-┌─────▼──────┐   ┌─────▼──────────┐
-│  Backend   │   │ Smart Contract │
-│   API      │   │ (Registry/Hook)│
-│            │   │                │
-│ • ENS      │   │ • ENS Registry │
-│   Scoring  │   │ • Hyde Hook    │
-│ • Tier     │   └────────────────┘
-│   Calc     │
-└────────────┘
-```
+
+---
 
 ## User Flow
 
-1. Connect wallet and enter ENS name.
-2. Backend verifies ENS ownership and computes score breakdown.
-3. Tier is registered on-chain in `ENSContextRegistry`.
-4. User swaps through UI; hook enforces tier + cooldown rules.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant Widget as Uniswap Swap Widget
+    participant Hyde as Hyde Name Hooks
+
+    User->>Widget: Initiate swap
+    Widget->>Hyde: Check ENS eligibility
+    Hyde-->>Widget: Proof verified
+    Widget->>Widget: Execute swap
+    Widget-->>User: Trade succeeds with privacy
+```
+
+---
 
 ## ENS Integration
 
-- ENS ownership is verified via on-chain reverse resolution.
-- ENS name is hashed and stored on-chain (selective disclosure).
-- Tier is stored in `ENSContextRegistry` and used for gating.
+Hyde leverages ENS as more than naming.
 
-## Uniswap Integration
+ENS provides:
 
-Hyde integrates as a Uniswap v4 hook that runs in the swap lifecycle:
-- **beforeSwap**: checks registry tier and cooldown
-- **afterSwap**: reserved for post-swap privacy signals
+- Human-readable identity
+- Reputation context
+- Programmable gating signals
 
-References:
-- [Uniswap v4 overview](https://docs.uniswap.org/contracts/v4/overview)
-- [Hooks concept](https://docs.uniswap.org/contracts/v4/concepts/hooks)
+Resources:
 
-## Components
+- [ENS Documentation](https://docs.ens.domains/)
 
-### 1. Frontend (`/frontend`)
-- React + TypeScript + TailwindCSS
-- Wallet connection (wagmi + viem)
-- ENS verification flow and tier UI
-- Privacy-aware swap interface
+---
 
-### 2. Smart Contracts (`/contracts`)
-- **ENSContextRegistry**: tier storage with selective disclosure
-- **HydeHook**: v4 hook for tier-gated execution
-- Hardhat development environment
+## Uniswap v4 Integration
 
-### 3. Backend API (`/backend`)
-- Express + TypeScript
-- ENS context scoring (0-1000 points)
-- Contract interaction layer
-- RESTful API for frontend
+Hyde Name Hooks integrates directly into Uniswap v4 lifecycle:
+
+- `beforeSwap()` verifies eligibility proof
+- Swap proceeds only if reputation tier is valid
+
+Key references:
+
+- [Uniswap v4 Hook Templates](https://github.com/uniswapfoundation/v4-template)
+- [OpenZeppelin Hook Libraries](https://docs.openzeppelin.com/contracts/)
+
+---
+
+## Technical Deep Dive
+
+### Context Scoring Pipeline
+
+- Backend computes a 0–1000 score from on-chain signals:
+  - transaction history (0–300)
+  - token holdings (0–300)
+  - DeFi activity (0–200)
+  - DAO participation (0–200)
+- Score is mapped to tier (Standard/Trusted/Elite)
+- Only tier is stored on-chain to preserve privacy
+
+### On-Chain Registry
+
+- `ENSContextRegistry` stores:
+  - `ensNameHash` (keccak256)
+  - tier level
+  - last update timestamp
+- Registry is updated only by the backend oracle
+
+### Hook Gating (v4)
+
+- `HydeHook` checks:
+  - user is registered
+  - tier >= required tier
+  - cooldown not violated
+- Fails fast on any violation and emits denial reasons
+
+### API Surface
+
+- `POST /api/verify-ens` → verify ownership + register tier
+- `GET /api/tier/:address` → read tier for UI gating
+- `GET /api/ens-name/:address` → reverse lookup for display
+
+---
+
+## Hackathon Demo
+
+Our demo site embeds:
+
+- Uniswap Swap Widget
+- Hyde Name Hook verification layer
+
+Flow:
+
+1. User initiates swap
+2. Hyde verifies ENS tier + proof
+3. Swap executes only after validation
+
+---
+
+## Vision
+
+Hyde Name Hooks is a step toward:
+
+- Responsible privacy in DeFi
+- Contextual identity-based access control
+- Sybil-resistant privacy pools
+
+Privacy should not mean anonymity without accountability.
+
+Hyde makes privacy programmable.
+
+---
+
+## Repository Structure (Planned)
+
+- `contracts/` Hyde Hook smart contracts
+- `frontend/` Demo swap widget integration
+- `circuits/` Proof + selective disclosure logic
+- `docs/` Architecture + design specs
 
 ## Quick Start
 
