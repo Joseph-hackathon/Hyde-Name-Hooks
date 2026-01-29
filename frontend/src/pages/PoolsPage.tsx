@@ -118,10 +118,11 @@ export default function PoolsPage() {
         const ctx = gsap.context(() => {
             gsap.from('.gsap-pools-header', {
                 y: 20,
-                autoAlpha: 0,
+                opacity: 0,
                 duration: 0.7,
                 ease: 'power3.out',
                 stagger: 0.1,
+                immediateRender: false,
                 clearProps: 'transform,opacity',
             });
 
@@ -132,9 +133,10 @@ export default function PoolsPage() {
                         start: 'top 80%',
                     },
                     y: 24,
-                    autoAlpha: 0,
+                    opacity: 0,
                     duration: 0.7,
                     ease: 'power2.out',
+                    immediateRender: false,
                     delay: index * 0.04,
                     clearProps: 'transform,opacity',
                 });

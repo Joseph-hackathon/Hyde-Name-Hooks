@@ -14,10 +14,11 @@ export default function LandingPage() {
         const ctx = gsap.context(() => {
             gsap.from('.gsap-hero-line', {
                 y: 24,
-                autoAlpha: 0,
+                opacity: 0,
                 duration: 0.9,
                 ease: 'power3.out',
                 stagger: 0.12,
+                immediateRender: false,
                 clearProps: 'transform,opacity',
             });
 
@@ -28,9 +29,10 @@ export default function LandingPage() {
                         start: 'top 80%',
                     },
                     y: 26,
-                    autoAlpha: 0,
+                    opacity: 0,
                     duration: 0.8,
                     ease: 'power2.out',
+                    immediateRender: false,
                     clearProps: 'transform,opacity',
                 });
             });
@@ -53,6 +55,7 @@ export default function LandingPage() {
                             trigger: card,
                             start: 'top 85%',
                         },
+                        immediateRender: false,
                         clearProps: 'transform,opacity',
                     }
                 );

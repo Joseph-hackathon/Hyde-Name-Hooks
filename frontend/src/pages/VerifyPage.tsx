@@ -52,10 +52,11 @@ export default function VerifyPage() {
         const ctx = gsap.context(() => {
             gsap.from('.gsap-verify-header', {
                 y: 20,
-                autoAlpha: 0,
+                opacity: 0,
                 duration: 0.7,
                 ease: 'power3.out',
                 stagger: 0.1,
+                immediateRender: false,
                 clearProps: 'transform,opacity',
             });
 
@@ -66,9 +67,10 @@ export default function VerifyPage() {
                         start: 'top 80%',
                     },
                     y: 22,
-                    autoAlpha: 0,
+                    opacity: 0,
                     duration: 0.7,
                     ease: 'power2.out',
+                    immediateRender: false,
                     clearProps: 'transform,opacity',
                 });
             });

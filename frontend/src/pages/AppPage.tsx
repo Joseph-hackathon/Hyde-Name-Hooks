@@ -37,10 +37,11 @@ export default function AppPage() {
         const ctx = gsap.context(() => {
             gsap.from('.gsap-enter', {
                 y: 22,
-                autoAlpha: 0,
+                opacity: 0,
                 duration: 0.7,
                 ease: 'power3.out',
                 stagger: 0.08,
+                immediateRender: false,
                 clearProps: 'transform,opacity',
             });
 
@@ -51,9 +52,10 @@ export default function AppPage() {
                         start: 'top 80%',
                     },
                     y: 22,
-                    autoAlpha: 0,
+                    opacity: 0,
                     duration: 0.7,
                     ease: 'power2.out',
+                    immediateRender: false,
                     clearProps: 'transform,opacity',
                 });
             });
