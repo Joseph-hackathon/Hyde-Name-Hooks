@@ -42,8 +42,7 @@ export default function RootLayout() {
         if (id === CHAINS.baseSepolia.id) {
             return (
                 <svg viewBox="0 0 24 24" className="h-4 w-4">
-                    <circle cx="12" cy="12" r="10" fill="#2e7bff" />
-                    <path d="M9 7.5h4.8c2 0 3.2 1.1 3.2 2.8 0 1.6-1 2.6-2.6 2.8l2.7 3.4h-2.5l-2.4-3.3H11v3.3H9V7.5zm2 1.9v3.4h2.4c1 0 1.6-.7 1.6-1.7 0-1-.6-1.7-1.6-1.7H11z" fill="#ffffff" />
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="#0b19ff" />
                 </svg>
             );
         }
