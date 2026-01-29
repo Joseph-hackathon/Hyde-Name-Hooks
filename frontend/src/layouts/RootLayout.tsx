@@ -9,6 +9,7 @@ export default function RootLayout() {
     const chainId = useChainId();
     const { switchChain } = useSwitchChain();
     const chainOptions = Object.values(CHAINS);
+    type ChainId = typeof chainOptions[number]['id'];
 
     return (
         <div className="min-h-screen bg-background">
@@ -51,7 +52,7 @@ export default function RootLayout() {
                         <select
                             value={chainId ?? ''}
                             onChange={(event) => {
-                                const targetId = Number(event.target.value);
+                                const targetId = Number(event.target.value) as ChainId;
                                 if (!Number.isNaN(targetId)) {
                                     switchChain({ chainId: targetId });
                                 }
