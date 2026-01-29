@@ -201,6 +201,35 @@ router.get('/check-access/:address/:minTier', async (req: Request, res: Response
 });
 
 /**
+ * GET /api/ens-name/:address
+ * Get ENS name from reverse lookup
+ */
+router.get('/ens-name/:address', async (req: Request, res: Response) => {
+    try {
+        if (!requireServices(res)) return;
+
+        const { address } = req.params;
+        if (!address) {
+            return res.status(400).json({ error: 'Address required' });
+        }
+
+        const ensName = await ensService.getENSName(address);
+        res.json({
+            success: true,
+            data: {
+                address,
+                ensName,
+            },
+        });
+    } catch (error: any) {
+        console.error('Error in ens-name:', error);
+        res.status(500).json({
+            error: error.message || 'Failed to resolve ENS name',
+        });
+    }
+});
+
+/**
  * GET /api/health
  * Health check endpoint
  */

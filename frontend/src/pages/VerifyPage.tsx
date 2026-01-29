@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useChainId } from 'wagmi';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
-import { verifyEns } from '../lib/api';
+import { getEnsName, verifyEns } from '../lib/api';
 import { CHAINS } from '../config/contracts';
 
 export default function VerifyPage() {
@@ -37,6 +37,7 @@ export default function VerifyPage() {
     const registryAddress = chainConfig.contracts.registry;
     const explorerBase = chainConfig.blockExplorer;
     const claimStorageKey = address ? `hyde_claim_result_${address.toLowerCase()}` : null;
+    const isClaimed = Boolean(tierName || claimResult);
     const tabs = [
         { label: 'Swap', to: '/app' },
         { label: 'Verify', to: '/verify' },
@@ -95,6 +96,31 @@ export default function VerifyPage() {
             // ignore invalid cached data
         }
     }, [claimStorageKey]);
+
+    useEffect(() => {
+        if (!address || !tierName || claimResult) return;
+
+        const loadEnsName = async () => {
+            try {
+                const result = await getEnsName(address);
+                if (result?.ensName) {
+                    setEnsName(result.ensName);
+                    setClaimResult({
+                        ensName: result.ensName,
+                        address,
+                        tierName,
+                        tier: tierName === 'Elite' ? 2 : tierName === 'Trusted' ? 1 : 0,
+                        totalScore: contextScore ?? undefined,
+                        txHash: '',
+                    });
+                }
+            } catch {
+                // ignore lookup failures
+            }
+        };
+
+        loadEnsName();
+    }, [address, tierName, claimResult, contextScore, setEnsName]);
 
     if (!isConnected) {
         return (
@@ -207,7 +233,7 @@ export default function VerifyPage() {
                                 </div>
                             </motion.div>
                         )}
-                        {(verificationStatus === 'success' || tierName || claimResult) && (
+                        {(verificationStatus === 'success' || isClaimed) && (
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -243,7 +269,7 @@ export default function VerifyPage() {
                                             {claimResult?.totalScore ?? contextScore ?? 0}
                                         </span>
                                     </div>
-                                    {claimResult && (
+                                    {isClaimed && (
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                             <span className="text-slate-500">Claim Contract</span>
                                             <a

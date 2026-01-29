@@ -82,3 +82,10 @@ export async function checkAccess(address: string, minTier: number) {
     hasAccess: boolean;
   }>(`/api/check-access/${address}/${minTier}`);
 }
+
+export async function getEnsName(address: string) {
+  return request<{
+    address: string;
+    ensName: string | null;
+  }>(`/api/ens-name/${address}`);
+}
