@@ -1,46 +1,86 @@
 # Hyde-Name-Hooks
 
-# Hyde - Selective Disclosure Execution Privacy
+Hyde enables selective-disclosure execution privacy for DEX trading by gating access with ENS context tiers and a Uniswap v4 hook.
 
-Privacy-enhanced DEX execution on Uniswap v4 using ENS context-gated access.
+**Core concept:** _Hide the trade. Anchor the name._
 
-## Overview
+## Background & Market Research
 
-**Hyde** implements selective disclosure for DeFi trading. Users prove their tier eligibility without revealing transaction history or exact scores.
+We referenced the ENS and Uniswap ecosystems to define the UX pattern, naming layer, and swap execution surface:
+- [ENS main site](https://ens.domains/) and the [ENS Manager (Sepolia)](https://sepolia.app.ens.domains/) for the profile UX and context framing.
+- [ENS documentation](https://docs.ens.domains/) for reverse resolution and name ownership flow.
+- [Uniswap v4](https://docs.uniswap.org/contracts/v4/overview) and [v4 Hooks](https://docs.uniswap.org/contracts/v4/concepts/hooks) to validate the hook-based gating model.
 
-**Core Concept:** "Hide the trade. Anchor the name."
+## Problem
 
-## Architecture
+DEX swaps expose user intent and history, enabling MEV and copy-trading. At the same time, most privacy tools are UX-heavy and break composability. Users need a way to prove eligibility (e.g., reputation, activity tier) without revealing raw scores or wallet history.
+
+## Solution
+
+Hyde uses ENS-linked context tiers to enable selective disclosure. Users prove they are Standard/Trusted/Elite via on-chain registration without exposing the underlying scoring data. A Uniswap v4 hook enforces tier gating and cooldowns at execution time.
+
+## Key Features
+
+- **Selective disclosure tiering** (Standard/Trusted/Elite)
+- **ENS-backed identity anchoring**
+- **On-chain registry + hook gating**
+- **Privacy-focused swap experience**
+- **Multi-chain readiness** (Sepolia, Base Sepolia, Unichain Sepolia)
+
+## Platform Architecture
 
 ```
 ┌─────────────┐
-│  Frontend   │ ← User Interface (React + TypeScript)
+│  Frontend   │ ← React + TypeScript UI
 └─────┬───────┘
       │
       ├─────────────────┐
       │                 │
 ┌─────▼──────┐   ┌─────▼──────────┐
 │  Backend   │   │ Smart Contract │
-│   API      │   │   (Sepolia)    │
+│   API      │   │ (Registry/Hook)│
 │            │   │                │
-│ • ENS      │   │ • Registry     │
-│   Scoring  │   │ • Hook         │
+│ • ENS      │   │ • ENS Registry │
+│   Scoring  │   │ • Hyde Hook    │
 │ • Tier     │   └────────────────┘
 │   Calc     │
 └────────────┘
 ```
+
+## User Flow
+
+1. Connect wallet and enter ENS name.
+2. Backend verifies ENS ownership and computes score breakdown.
+3. Tier is registered on-chain in `ENSContextRegistry`.
+4. User swaps through UI; hook enforces tier + cooldown rules.
+
+## ENS Integration
+
+- ENS ownership is verified via on-chain reverse resolution.
+- ENS name is hashed and stored on-chain (selective disclosure).
+- Tier is stored in `ENSContextRegistry` and used for gating.
+
+## Uniswap Integration
+
+Hyde integrates as a Uniswap v4 hook that runs in the swap lifecycle:
+- **beforeSwap**: checks registry tier and cooldown
+- **afterSwap**: reserved for post-swap privacy signals
+
+References:
+- [Uniswap v4 overview](https://docs.uniswap.org/contracts/v4/overview)
+- [Hooks concept](https://docs.uniswap.org/contracts/v4/concepts/hooks)
 
 ## Components
 
 ### 1. Frontend (`/frontend`)
 - React + TypeScript + TailwindCSS
 - Wallet connection (wagmi + viem)
-- ENS verification flow
+- ENS verification flow and tier UI
 - Privacy-aware swap interface
 
 ### 2. Smart Contracts (`/contracts`)
-- **ENSContextRegistry**: Tier storage with selective disclosure
-- **HydeHook**: Uniswap v4 Hook for tier-gated execution
+- **ENSContextRegistry**: tier storage with selective disclosure
+- **HydeHook**: v4 hook for tier-gated execution
 - Hardhat development environment
 
 ### 3. Backend API (`/backend`)
@@ -234,4 +274,3 @@ MIT
 ## Contact
 
 Built for the HNH Hackathon - Selective Disclosure Execution Privacy
->>>>>>> 8d5f7c8 (feat: Complete Hyde implementation with smart contracts and backend API)
