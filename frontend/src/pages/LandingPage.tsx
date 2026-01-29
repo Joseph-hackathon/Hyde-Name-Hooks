@@ -195,10 +195,10 @@ export default function LandingPage() {
                     >
                         <p className="gsap-hero-line text-xs uppercase tracking-[0.35em] text-slate-400">Hyde Name Hooks</p>
                         <h1 className="gsap-hero-line text-5xl md:text-7xl font-black tracking-tight text-brand-dark">
-                            Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED]">private DeFi story</span>
+                            Trade freely, without becoming transparent.
                         </h1>
-                        <p className="gsap-hero-line text-lg text-slate-600 max-w-xl leading-relaxed">
-                            ENS-powered privacy for Uniswap v4. Prove your tier without exposing your strategy.
+                        <p className="gsap-hero-line text-lg text-slate-600 leading-relaxed whitespace-nowrap">
+                            Hyde brings verifiable privacy to Uniswap v4, where your ENS proves who you are, not what you hold.
                         </p>
                         <div className="gsap-hero-line flex flex-wrap gap-4 items-center">
                             <Link to="/app" className="inline-flex">
