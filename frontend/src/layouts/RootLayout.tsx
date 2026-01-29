@@ -5,7 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import ConnectButton from '../components/wallet/ConnectButton';
 import { useWallet } from '../contexts/WalletContext';
 import { CHAINS } from '../config/contracts';
-import hydeLogo from '../assets/hyde-logo.svg';
+import hydeLogo from '../assets/hyde-logo.png';
 
 export default function RootLayout() {
     const { ensName } = useWallet();
