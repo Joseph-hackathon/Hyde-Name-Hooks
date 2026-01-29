@@ -231,6 +231,10 @@ ENS provides:
 Resources:
 
 - [ENS Documentation](https://docs.ens.domains/)
+- Project code:
+  - [ENS verification flow (frontend)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/frontend/src/pages/VerifyPage.tsx)
+  - [ENS context scoring + ownership checks (backend)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/services/ensContextService.ts)
+  - [Verify + register endpoint](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/routes/api.ts)
 
 ---
 
@@ -245,6 +249,9 @@ Key references:
 
 - [Uniswap v4 Hook Templates](https://github.com/uniswapfoundation/v4-template)
 - [OpenZeppelin Hook Libraries](https://docs.openzeppelin.com/contracts/)
+- Project code:
+  - [HydeHook (v4 gating logic)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/contracts/src/HydeHook.sol)
+  - [Swap UI & Uniswap redirect](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/frontend/src/pages/AppPage.tsx)
 
 ---
 
@@ -259,6 +266,8 @@ Key references:
   - DAO participation (0–200)
 - Score is mapped to tier (Standard/Trusted/Elite)
 - Only tier is stored on-chain to preserve privacy
+- Project code:
+  - [Score computation](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/services/ensContextService.ts)
 
 ### On-Chain Registry
 
@@ -267,6 +276,9 @@ Key references:
   - tier level
   - last update timestamp
 - Registry is updated only by the backend oracle
+- Project code:
+  - [ENSContextRegistry contract](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/contracts/src/ENSContextRegistry.sol)
+  - [Contract write path](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/services/contractService.ts)
 
 ### Hook Gating (v4)
 
@@ -275,12 +287,16 @@ Key references:
   - tier >= required tier
   - cooldown not violated
 - Fails fast on any violation and emits denial reasons
+- Project code:
+  - [HydeHook gating checks](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/contracts/src/HydeHook.sol)
 
 ### API Surface
 
 - `POST /api/verify-ens` → verify ownership + register tier
 - `GET /api/tier/:address` → read tier for UI gating
 - `GET /api/ens-name/:address` → reverse lookup for display
+- Project code:
+  - [API routes](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/routes/api.ts)
 
 ---
 
