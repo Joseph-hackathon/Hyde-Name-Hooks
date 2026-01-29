@@ -18,7 +18,17 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
 
-  const payload = (await response.json()) as ApiSuccess<T> | ApiError;
+  const raw = await response.text();
+  if (!raw) {
+    throw new Error('Empty response from server');
+  }
+
+  let payload: ApiSuccess<T> | ApiError;
+  try {
+    payload = JSON.parse(raw) as ApiSuccess<T> | ApiError;
+  } catch {
+    throw new Error(`Invalid JSON response (${response.status})`);
+  }
 
   if (!response.ok) {
     const message = 'error' in payload ? payload.error : 'Request failed';

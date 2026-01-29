@@ -29,6 +29,19 @@ export class ENSContextService {
         this.provider = new ethers.JsonRpcProvider(rpcUrl);
     }
 
+    private static ERC20_ABI = [
+        "function balanceOf(address owner) view returns (uint256)",
+        "function decimals() view returns (uint8)",
+    ];
+
+    private getScoreTokens(): string[] {
+        const raw = process.env.SCORE_TOKEN_ADDRESSES || '';
+        return raw
+            .split(',')
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0);
+    }
+
     /**
      * Calculate context score for an ENS name/address
      * @param address Ethereum address
@@ -44,11 +57,13 @@ export class ENSContextService {
             const defiActivity = await this.scoreDefiActivity(address);
             const daoParticipation = await this.scoreDaoParticipation(address, ensName);
 
-            const totalScore =
+            const totalScore = Math.min(
                 transactionHistory +
                 tokenHoldings +
                 defiActivity +
-                daoParticipation;
+                daoParticipation,
+                1000
+            );
 
             const tier = this.calculateTier(totalScore);
 
@@ -102,20 +117,40 @@ export class ENSContextService {
 
     /**
      * Score based on token holdings (0-300 points)
-     * In production: query token balances via APIs (Alchemy, Moralis)
+     * Reads ERC20 balances from onchain RPC for configured token list.
      */
     private async scoreTokenHoldings(address: string): Promise<number> {
-        // Mock implementation - in production, query actual token balances
-        // This would involve checking ERC20 balances for major tokens
+        try {
+            const tokens = this.getScoreTokens();
+            if (tokens.length === 0) return 0;
 
-        // For now, return a random score based on address activity
-        const txCount = await this.provider.getTransactionCount(address);
-        const baseScore = Math.min(txCount / 5, 150);
+            const scores = await Promise.all(tokens.map(async (token) => {
+                try {
+                    const contract = new ethers.Contract(
+                        token,
+                        ENSContextService.ERC20_ABI,
+                        this.provider
+                    );
+                    const [balance, decimals] = await Promise.all([
+                        contract.balanceOf(address),
+                        contract.decimals(),
+                    ]);
+                    const units = Number(ethers.formatUnits(balance, decimals));
+                    if (units >= 1000) return 100;
+                    if (units >= 100) return 75;
+                    if (units >= 10) return 50;
+                    if (units >= 1) return 25;
+                    return units > 0 ? 10 : 0;
+                } catch {
+                    return 0;
+                }
+            }));
 
-        // Add bonus for addresses with high activity
-        const bonus = txCount > 500 ? 150 : txCount > 100 ? 75 : 0;
-
-        return Math.min(baseScore + bonus, 300);
+            const total = scores.reduce((sum, value) => sum + value, 0);
+            return Math.min(total, 300);
+        } catch {
+            return 0;
+        }
     }
 
     /**
@@ -123,12 +158,6 @@ export class ENSContextService {
      * In production: analyze interaction with DeFi protocols
      */
     private async scoreDefiActivity(address: string): Promise<number> {
-        // Mock implementation
-        // In production: check for interactions with:
-        // - Uniswap, Curve, Balancer (DEX usage)
-        // - Aave, Compound (lending)
-        // - Liquidity provider positions
-
         const txCount = await this.provider.getTransactionCount(address);
 
         // Heuristic: more transactions likely means DeFi activity
