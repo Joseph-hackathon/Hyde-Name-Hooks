@@ -10,8 +10,23 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+const normalizeOrigin = (value: string) => value.replace(/\/$/, '');
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+]
+    .filter(Boolean)
+    .map((value) => normalizeOrigin(value as string));
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const normalizedOrigin = normalizeOrigin(origin);
+        if (allowedOrigins.includes(normalizedOrigin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
 }));
 app.use(express.json());
