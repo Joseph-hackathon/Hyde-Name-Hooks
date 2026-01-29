@@ -1,11 +1,28 @@
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Repeat, Activity, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useChainId } from 'wagmi';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
+import { CHAINS } from '../config/contracts';
 
 export default function AppPage() {
     const { isConnected, ensName, contextScore, balance, address, tierName } = useWallet();
+    const chainId = useChainId();
+    const [payAmount, setPayAmount] = useState('');
+    const [swapError, setSwapError] = useState<string | null>(null);
+    const [swapMessage, setSwapMessage] = useState<string | null>(null);
+
+    const swapConfig = useMemo(() => {
+        if (chainId === CHAINS.sepolia.id) {
+            return {
+                chainParam: 'sepolia',
+                outputCurrency: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC (Sepolia)
+            };
+        }
+        return null;
+    }, [chainId]);
 
     if (!isConnected) {
         return (
@@ -42,6 +59,29 @@ export default function AppPage() {
         { label: 'Verify', to: '/verify' },
         { label: 'Pools', to: '/pools' },
     ];
+
+    const handleSwap = () => {
+        setSwapError(null);
+        setSwapMessage(null);
+
+        if (!tierName && !contextScore) {
+            setSwapError('Claim your ENS context before swapping.');
+            return;
+        }
+        if (!swapConfig) {
+            setSwapError('Swap is available on Sepolia testnet.');
+            return;
+        }
+        const amount = Number(payAmount);
+        if (!payAmount || Number.isNaN(amount) || amount <= 0) {
+            setSwapError('Enter a valid amount to swap.');
+            return;
+        }
+
+        const url = `https://app.uniswap.org/#/swap?inputCurrency=ETH&outputCurrency=${swapConfig.outputCurrency}&exactAmount=${amount}&exactField=input&chain=${swapConfig.chainParam}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+        setSwapMessage('Swap opened on Uniswap with Hyde context gating.');
+    };
 
     return (
         <div className="bg-background min-h-screen p-6">
@@ -104,7 +144,13 @@ export default function AppPage() {
                                 <span className="text-brand-dark font-bold">Balance: {balance || '0.0'}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <input type="text" placeholder="0.0" className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full" />
+                                <input
+                                    type="text"
+                                    value={payAmount}
+                                    onChange={(event) => setPayAmount(event.target.value)}
+                                    placeholder="0.0"
+                                    className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full"
+                                />
                                 <button className="bg-white hover:bg-slate-50 px-3 py-1 rounded-full font-semibold text-brand-dark flex items-center gap-2 mx-2 shadow-sm border border-slate-200">
                                     ETH <span className="text-xs">▼</span>
                                 </button>
@@ -123,7 +169,12 @@ export default function AppPage() {
                                 <span className="text-brand-dark font-bold">Balance: 0.0</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <input type="text" placeholder="0.0" className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full" />
+                                <input
+                                    type="text"
+                                    placeholder="Quoted on Uniswap"
+                                    className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full"
+                                    disabled
+                                />
                                 <button className="bg-brand-blue text-white px-3 py-1 rounded-full font-semibold flex items-center gap-2 mx-2 shadow-lg shadow-brand-blue/20">
                                     USDC <span className="text-xs">▼</span>
                                 </button>
@@ -141,8 +192,19 @@ export default function AppPage() {
                         </div>
                     )}
 
-                    <Button className="w-full mt-6" size="lg">
-                        Execute Private Swap
+                    {swapError && (
+                        <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            {swapError}
+                        </div>
+                    )}
+                    {swapMessage && (
+                        <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                            {swapMessage}
+                        </div>
+                    )}
+
+                    <Button className="w-full mt-6" size="lg" onClick={handleSwap}>
+                        Swap on Uniswap
                     </Button>
 
                     <div className="mt-4 text-center text-xs text-slate-500">
