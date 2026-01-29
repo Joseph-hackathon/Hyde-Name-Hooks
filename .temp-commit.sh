@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 git commit -m "$(cat <<'EOF'
-fix: prevent gsap from hiding content
+chore: remove temp commit script
 
-Disable immediate rendering for GSAP reveals so pages stay visible
-before scroll triggers fire.
+Remove temporary commit helper script from repo.
 EOF
 )"
