@@ -15,15 +15,42 @@ export default function RootLayout() {
     const [isChainOpen, setIsChainOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-    const chainMeta: Record<number, { label: string; color: string }> = {
-        [CHAINS.sepolia.id]: { label: 'Sepolia', color: 'bg-indigo-500' },
-        [CHAINS.baseSepolia.id]: { label: 'Base', color: 'bg-blue-500' },
-        [CHAINS.unichainSepolia.id]: { label: 'Unichain', color: 'bg-emerald-500' },
+    const renderChainIcon = (id: number) => {
+        if (id === CHAINS.sepolia.id) {
+            return (
+                <svg viewBox="0 0 24 24" className="h-4 w-4">
+                    <polygon points="12,2 3,12 12,17 21,12" fill="#8b8b8b" />
+                    <polygon points="12,2 12,17 21,12" fill="#5f5f5f" />
+                    <polygon points="12,22 3,12 12,17 21,12" fill="#4a4a4a" />
+                </svg>
+            );
+        }
+        if (id === CHAINS.unichainSepolia.id) {
+            return (
+                <svg viewBox="0 0 24 24" className="h-4 w-4">
+                    <defs>
+                        <linearGradient id="uniGlow" x1="0" x2="1" y1="0" y2="1">
+                            <stop offset="0%" stopColor="#ff6bd5" />
+                            <stop offset="100%" stopColor="#ff1fa5" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="12" cy="12" r="10" fill="url(#uniGlow)" />
+                    <path d="M12 6 L13.8 10.2 L18 12 L13.8 13.8 L12 18 L10.2 13.8 L6 12 L10.2 10.2 Z" fill="#ffffff" />
+                </svg>
+            );
+        }
+        if (id === CHAINS.baseSepolia.id) {
+            return (
+                <svg viewBox="0 0 24 24" className="h-4 w-4">
+                    <circle cx="12" cy="12" r="10" fill="#2e7bff" />
+                    <path d="M9 7.5h4.8c2 0 3.2 1.1 3.2 2.8 0 1.6-1 2.6-2.6 2.8l2.7 3.4h-2.5l-2.4-3.3H11v3.3H9V7.5zm2 1.9v3.4h2.4c1 0 1.6-.7 1.6-1.7 0-1-.6-1.7-1.6-1.7H11z" fill="#ffffff" />
+                </svg>
+            );
+        }
+        return <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />;
     };
 
     const activeChain = chainOptions.find((chain) => chain.id === chainId) || CHAINS.sepolia;
-    const activeMeta = chainMeta[activeChain.id];
-
     useEffect(() => {
         const handleClick = (event: MouseEvent) => {
             if (!dropdownRef.current) return;
@@ -79,14 +106,13 @@ export default function RootLayout() {
                                 onClick={() => setIsChainOpen((prev) => !prev)}
                                 className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm hover:border-indigo-200 transition-colors"
                             >
-                                <span className={`h-2.5 w-2.5 rounded-full ${activeMeta?.color || 'bg-slate-400'}`} />
+                                {renderChainIcon(activeChain.id)}
                                 <span>{activeChain.name}</span>
                                 <ChevronDown className="h-4 w-4 text-slate-400" />
                             </button>
                             {isChainOpen && (
                                 <div className="absolute right-0 mt-2 w-44 rounded-2xl border border-slate-100 bg-white p-2 shadow-lg">
                                     {chainOptions.map((chain) => {
-                                        const meta = chainMeta[chain.id];
                                         return (
                                             <button
                                                 key={chain.id}
@@ -97,7 +123,7 @@ export default function RootLayout() {
                                                 }}
                                                 className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
                                             >
-                                                <span className={`h-2.5 w-2.5 rounded-full ${meta?.color || 'bg-slate-400'}`} />
+                                                {renderChainIcon(chain.id)}
                                                 <span>{chain.name}</span>
                                             </button>
                                         );
