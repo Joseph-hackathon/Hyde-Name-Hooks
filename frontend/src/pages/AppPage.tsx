@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Repeat, Activity, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -6,8 +6,11 @@ import { useChainId } from 'wagmi';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import { CHAINS } from '../config/contracts';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 export default function AppPage() {
+    const rootRef = useRef<HTMLDivElement>(null);
     const { isConnected, ensName, contextScore, balance, address, tierName } = useWallet();
     const chainId = useChainId();
     const [payAmount, setPayAmount] = useState('');
@@ -29,13 +32,47 @@ export default function AppPage() {
         return null;
     }, [chainId]);
 
+    useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        const ctx = gsap.context(() => {
+            gsap.from('.gsap-enter', {
+                y: 22,
+                autoAlpha: 0,
+                duration: 0.7,
+                ease: 'power3.out',
+                stagger: 0.08,
+                clearProps: 'transform,opacity',
+            });
+
+            gsap.utils.toArray<HTMLElement>('.gsap-reveal').forEach((card) => {
+                gsap.from(card, {
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top 80%',
+                    },
+                    y: 22,
+                    autoAlpha: 0,
+                    duration: 0.7,
+                    ease: 'power2.out',
+                    clearProps: 'transform,opacity',
+                });
+            });
+        }, rootRef);
+
+        return () => ctx.revert();
+    }, []);
+
     if (!isConnected) {
         return (
-            <div className="bg-background min-h-screen flex items-center justify-center p-6">
+            <div className="ens-page flex items-center justify-center p-6">
+                <div className="pointer-events-none absolute inset-0 ens-grid" />
+                <div className="pointer-events-none absolute inset-0 ens-noise" />
+                <div className="pointer-events-none absolute -top-24 right-0 h-64 w-64 rounded-full bg-blue-100 blur-3xl opacity-70" />
+                <div className="pointer-events-none absolute top-48 left-0 h-72 w-72 rounded-full bg-indigo-100 blur-3xl opacity-70" />
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center max-w-md bg-white border border-slate-100 rounded-[2rem] p-10 shadow-soft"
+                    className="relative z-10 text-center max-w-md ens-card ens-glass border border-slate-100 rounded-[2rem] p-10 shadow-soft"
                 >
                     <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Activity className="w-10 h-10 text-brand-blue" />
@@ -133,45 +170,51 @@ export default function AppPage() {
     };
 
     return (
-        <div className="bg-background min-h-screen p-6">
-            {/* App Header */}
-            <header className="max-w-6xl mx-auto flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-6">
-                <div className="space-y-2">
-                    <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-blue transition-colors text-sm">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Home
-                    </Link>
-                    <h1 className="text-3xl md:text-4xl font-black text-brand-dark">Privacy Swap</h1>
-                    <p className="text-slate-600">
-                        Trade with selective disclosure while keeping your intent private.
-                    </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    {ensName && (
-                        <div className="ens-chip">
-                            {ensName} {contextScore && `(${contextScore})`}
+        <div ref={rootRef} className="ens-page p-6">
+            <div className="pointer-events-none absolute inset-0 ens-grid" />
+            <div className="pointer-events-none absolute inset-0 ens-noise" />
+            <div className="pointer-events-none absolute -top-24 right-0 h-64 w-64 rounded-full bg-blue-100 blur-3xl opacity-70" />
+            <div className="pointer-events-none absolute top-48 left-0 h-72 w-72 rounded-full bg-indigo-100 blur-3xl opacity-70" />
+
+            <div className="relative z-10">
+                {/* App Header */}
+                <header className="max-w-6xl mx-auto flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-6">
+                    <div className="space-y-2">
+                        <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-blue transition-colors text-sm">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to Home
+                        </Link>
+                    <h1 className="gsap-enter text-3xl md:text-4xl font-black text-brand-dark">Private Swap</h1>
+                        <p className="gsap-enter text-slate-600">
+                            Trade with selective disclosure while keeping your intent private.
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                        {ensName && (
+                            <div className="ens-chip">
+                                {ensName} {contextScore && `(${contextScore})`}
+                            </div>
+                        )}
+                        <div className="ens-chip bg-brand-dark text-white border-brand-dark">
+                            {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
                         </div>
-                    )}
-                    <div className="ens-chip bg-brand-dark text-white border-brand-dark">
-                        {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
+                    </div>
+                </header>
+
+                <div className="max-w-6xl mx-auto mb-8 flex flex-wrap items-center gap-3">
+                    <div className="ens-chip">
+                        {ensName || 'Unnamed'} {tier ? `• ${tier}` : ''}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {tabs.map((tab) => (
+                            <Link key={tab.to} to={tab.to} className="inline-flex">
+                                <Button variant={tab.to === '/app' ? 'primary' : 'ghost'} size="sm">
+                                    {tab.label}
+                                </Button>
+                            </Link>
+                        ))}
                     </div>
                 </div>
-            </header>
-
-            <div className="max-w-6xl mx-auto mb-8 flex flex-wrap items-center gap-3">
-                <div className="ens-chip">
-                    {ensName || 'Unnamed'} {tier ? `• ${tier}` : ''}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    {tabs.map((tab) => (
-                        <Link key={tab.to} to={tab.to} className="inline-flex">
-                            <Button variant={tab.to === '/app' ? 'primary' : 'ghost'} size="sm">
-                                {tab.label}
-                            </Button>
-                        </Link>
-                    ))}
-                </div>
-            </div>
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
 
@@ -179,9 +222,9 @@ export default function AppPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="md:col-span-2 ens-card p-8 relative overflow-hidden"
+                    className="gsap-reveal md:col-span-2 ens-card ens-glass p-8 relative overflow-hidden"
                 >
-                    <h2 className="text-2xl font-display font-bold text-brand-dark mb-2">Swap with privacy</h2>
+                    <h2 className="text-2xl font-display font-bold text-brand-dark mb-2">Swap, quietly</h2>
                     <p className="text-sm text-slate-600 mb-6">
                         Selective disclosure execution • Hide your intent • Anchor your name
                     </p>
@@ -295,12 +338,12 @@ export default function AppPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="ens-card p-6 relative overflow-hidden"
+                        className="gsap-reveal ens-card p-6 relative overflow-hidden"
                     >
                         <div className="absolute top-0 right-0 p-4 opacity-10">
                             <Activity className="w-32 h-32" />
                         </div>
-                        <h3 className="text-lg font-bold text-brand-dark mb-1">Your Tier</h3>
+                        <h3 className="text-lg font-bold text-brand-dark mb-1">Your tier</h3>
                         <div className="text-4xl font-display font-black text-brand-dark mb-2">
                             {contextScore ? tier : 'Not Claimed'}
                         </div>
@@ -320,9 +363,9 @@ export default function AppPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="ens-card p-6"
+                        className="gsap-reveal ens-card p-6"
                     >
-                        <h3 className="text-lg font-bold text-brand-dark mb-4">Privacy Features</h3>
+                        <h3 className="text-lg font-bold text-brand-dark mb-4">Privacy perks</h3>
                         <div className="space-y-3 text-sm">
                             <div className="flex items-start gap-2">
                                 <Shield className="w-4 h-4 text-brand-blue mt-0.5" />
@@ -347,12 +390,12 @@ export default function AppPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="max-w-6xl mx-auto mt-10 ens-card p-8"
+                className="gsap-reveal max-w-6xl mx-auto mt-10 ens-card ens-glass p-8"
             >
                 <div className="flex flex-col gap-2 mb-6">
-                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Integration Notes</p>
+                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Hook Notes</p>
                     <h2 className="text-2xl font-display font-bold text-brand-dark">
-                        How Hyde integrates with Uniswap-style swaps
+                        How the hook works
                     </h2>
                     <p className="text-sm text-slate-600">
                         Hyde plugs into swap execution as a v4 Hook so DeFi integrators can add tier-gated privacy
@@ -362,7 +405,7 @@ export default function AppPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
                     <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                        <h4 className="font-semibold text-brand-dark mb-3">Execution Path</h4>
+                        <h4 className="font-semibold text-brand-dark mb-3">Flow</h4>
                         <ul className="space-y-2">
                             <li>1. ENS ownership verified by backend scoring.</li>
                             <li>2. Tier registered onchain in the registry contract.</li>
@@ -371,7 +414,7 @@ export default function AppPage() {
                         </ul>
                     </div>
                     <div className="bg-white rounded-2xl p-5 border border-slate-100">
-                        <h4 className="font-semibold text-brand-dark mb-3">Benefits for Integrators</h4>
+                        <h4 className="font-semibold text-brand-dark mb-3">Integrator wins</h4>
                         <ul className="space-y-2">
                             <li>Lower MEV exposure via tier gating and cooldowns.</li>
                             <li>Portable ENS identity across chains and apps.</li>
@@ -381,6 +424,7 @@ export default function AppPage() {
                     </div>
                 </div>
             </motion.div>
+            </div>
         </div>
     );
 }

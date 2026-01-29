@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import ConnectButton from '../components/wallet/ConnectButton';
 import { useWallet } from '../contexts/WalletContext';
 import { CHAINS } from '../config/contracts';
+import hydeLogo from '../assets/hyde-logo.svg';
 
 export default function RootLayout() {
     const { ensName } = useWallet();
@@ -68,9 +69,7 @@ export default function RootLayout() {
                 <div className="container mx-auto px-6 h-20 flex items-center justify-between">
                     {/* Logo Area */}
                     <Link to="/" className="flex items-center gap-2 group">
-                        <div className="w-8 h-8 bg-brand-dark rounded-full flex items-center justify-center">
-                            <div className="w-3 h-3 border-2 border-white rounded-full"></div>
-                        </div>
+                        <img src={hydeLogo} alt="Hyde logo" className="h-8 w-8" />
                         <span className="text-xl font-bold tracking-tight">
                             Hyde
                         </span>

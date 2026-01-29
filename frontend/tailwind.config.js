@@ -32,8 +32,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Roboto', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Inter', 'system-ui', 'sans-serif'], // For big headers
+        sans: ['Fredoka', 'system-ui', 'sans-serif'],
+        display: ['Fredoka', 'system-ui', 'sans-serif'], // For big headers
       },
       backgroundImage: {
         'search-gradient': 'linear-gradient(90deg, #EBF4FF 0%, #F5F3FF 100%)',

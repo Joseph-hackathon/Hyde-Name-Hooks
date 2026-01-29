@@ -1,8 +1,8 @@
 @import "tailwindcss";
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
+@import "@fontsource/fredoka/400.css";
+@import "@fontsource/fredoka/500.css";
+@import "@fontsource/fredoka/600.css";
+@import "@fontsource/fredoka/700.css";
 @config "../tailwind.config.js";
 
 @layer base {
@@ -14,13 +14,28 @@
   body {
     @apply bg-background text-brand-dark antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
 }
 
 @layer utilities {
+  .ens-page {
+    @apply relative bg-background min-h-screen overflow-hidden;
+  }
+
   .ens-card {
-    @apply bg-white rounded-3xl shadow-soft border border-slate-100 transition-all duration-300;
+    @apply bg-white rounded-3xl border border-slate-100 transition-all duration-300;
+    box-shadow: 0 16px 45px rgba(15, 23, 42, 0.08);
+  }
+
+  .ens-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
+  }
+
+  .ens-glass {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(14px);
   }
 
   .ens-chip {
@@ -29,5 +44,17 @@
 
   .ens-pill {
     @apply rounded-full;
+  }
+
+  .ens-grid {
+    background-image: linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.25;
+  }
+
+  .ens-noise {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.08;
   }
 }

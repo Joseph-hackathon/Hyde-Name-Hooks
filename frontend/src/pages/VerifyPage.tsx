@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,8 +7,11 @@ import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import { getEnsName, verifyEns } from '../lib/api';
 import { CHAINS } from '../config/contracts';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 export default function VerifyPage() {
+    const rootRef = useRef<HTMLDivElement>(null);
     const { isConnected, contextScore, setContextScore, address, setEnsName, ensName, tierName } = useWallet();
     const [searchName, setSearchName] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
@@ -43,6 +46,36 @@ export default function VerifyPage() {
         { label: 'Verify', to: '/verify' },
         { label: 'Pools', to: '/pools' },
     ];
+
+    useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        const ctx = gsap.context(() => {
+            gsap.from('.gsap-verify-header', {
+                y: 20,
+                autoAlpha: 0,
+                duration: 0.7,
+                ease: 'power3.out',
+                stagger: 0.1,
+                clearProps: 'transform,opacity',
+            });
+
+            gsap.utils.toArray<HTMLElement>('.gsap-verify-card').forEach((card) => {
+                gsap.from(card, {
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top 80%',
+                    },
+                    y: 22,
+                    autoAlpha: 0,
+                    duration: 0.7,
+                    ease: 'power2.out',
+                    clearProps: 'transform,opacity',
+                });
+            });
+        }, rootRef);
+
+        return () => ctx.revert();
+    }, []);
 
     const handleVerify = async () => {
         if (!searchName || !address) return;
@@ -134,7 +167,7 @@ export default function VerifyPage() {
                         <Shield className="w-10 h-10 text-brand-blue" />
                     </div>
                     <h2 className="text-3xl font-display font-bold text-brand-dark mb-4">
-                        Connect to Claim Context
+                        Connect to claim
                     </h2>
                     <p className="text-slate-600 mb-8">
                         Connect your wallet to register your ENS name and unlock selective disclosure privacy.
@@ -148,8 +181,13 @@ export default function VerifyPage() {
     }
 
     return (
-        <div className="bg-background min-h-screen p-6">
-            <div className="max-w-5xl mx-auto">
+        <div ref={rootRef} className="ens-page p-6">
+            <div className="pointer-events-none absolute inset-0 ens-grid" />
+            <div className="pointer-events-none absolute inset-0 ens-noise" />
+            <div className="pointer-events-none absolute -top-24 right-0 h-64 w-64 rounded-full bg-indigo-100 blur-3xl opacity-70" />
+            <div className="pointer-events-none absolute top-48 left-0 h-72 w-72 rounded-full bg-blue-100 blur-3xl opacity-70" />
+
+            <div className="relative z-10 max-w-5xl mx-auto">
 
                 {/* Header */}
                 <motion.div
@@ -157,11 +195,11 @@ export default function VerifyPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-6 space-y-2"
                 >
-                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Verify</p>
-                    <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-dark">
-                        Claim Your Context
+                    <p className="gsap-verify-header text-xs uppercase tracking-[0.35em] text-slate-400">Verify</p>
+                    <h1 className="gsap-verify-header text-4xl md:text-5xl font-display font-bold text-brand-dark">
+                        Claim your tier
                     </h1>
-                    <p className="text-lg text-slate-600">
+                    <p className="gsap-verify-header text-lg text-slate-600">
                         Your ENS name unlocks selective disclosure privacy. <strong>Prove you're eligible — without revealing everything.</strong>
                     </p>
                 </motion.div>
@@ -188,10 +226,10 @@ export default function VerifyPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="md:col-span-2 ens-card p-8"
+                        className="gsap-verify-card md:col-span-2 ens-card ens-glass p-8"
                     >
                         <h2 className="text-2xl font-display font-bold text-brand-dark mb-6">
-                            Enter Your ENS Name
+                            Enter ENS
                         </h2>
 
                         {/* Search Input */}
@@ -222,7 +260,7 @@ export default function VerifyPage() {
                                 <div className="flex items-start gap-4">
                                     <CheckCircle className="w-6 h-6 text-green-600 mt-1" />
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-brand-dark mb-2">Context Claimed!</h3>
+                                        <h3 className="font-bold text-brand-dark mb-2">Claimed!</h3>
                                         <p className="text-slate-600 mb-4">
                                             Your ENS context has been registered. You can now access privacy-enhanced execution on Uniswap v4.
                                         </p>
@@ -242,7 +280,7 @@ export default function VerifyPage() {
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
                                         <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                                            Claim Summary
+                                            Claim
                                         </p>
                                         <h3 className="text-xl font-display font-bold text-brand-dark">
                                             {claimResult?.ensName || ensName || searchName || 'Unnamed'}
@@ -299,14 +337,14 @@ export default function VerifyPage() {
 
                         {/* How Selective Disclosure Works */}
                         <div className="space-y-4">
-                            <h3 className="font-bold text-brand-dark mb-4">How Selective Disclosure Works</h3>
+                            <h3 className="font-bold text-brand-dark mb-4">How it works</h3>
 
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <Lock className="w-5 h-5 text-brand-blue" />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-brand-dark mb-1">Prove Tier, Hide Score</h4>
+                                    <h4 className="font-bold text-brand-dark mb-1">Prove tier</h4>
                                     <p className="text-sm text-slate-600">
                                         You only reveal your tier level (Standard/Trusted/Elite), never your exact score or transaction history.
                                     </p>
@@ -318,7 +356,7 @@ export default function VerifyPage() {
                                     <Shield className="w-5 h-5 text-pink-600" />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-brand-dark mb-1">Onchain Verification</h4>
+                                    <h4 className="font-bold text-brand-dark mb-1">Onchain proof</h4>
                                     <p className="text-sm text-slate-600">
                                         Your ENS context is calculated from public blockchain data: holdings, DAO votes, DeFi activity.
                                     </p>
@@ -330,7 +368,7 @@ export default function VerifyPage() {
                                     <CheckCircle className="w-5 h-5 text-green-600" />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-brand-dark mb-1">Access Privacy Pools</h4>
+                                    <h4 className="font-bold text-brand-dark mb-1">Unlock pools</h4>
                                     <p className="text-sm text-slate-600">
                                         High-tier users unlock access to privacy-enhanced pools with reduced MEV exposure.
                                     </p>
@@ -348,12 +386,12 @@ export default function VerifyPage() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.2 }}
-                                className="ens-card p-6 relative overflow-hidden"
+                                className="gsap-verify-card ens-card p-6 relative overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <TrendingUp className="w-32 h-32" />
                                 </div>
-                                <h3 className="text-lg font-bold text-brand-dark mb-1">Your Context</h3>
+                                <h3 className="text-lg font-bold text-brand-dark mb-1">Your score</h3>
                                 <div className="text-5xl font-display font-black text-brand-dark mb-3">
                                     {contextScore}
                                 </div>
@@ -406,11 +444,11 @@ export default function VerifyPage() {
                         )}
 
                         {/* Privacy Benefits */}
-                        <motion.div
+                            <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="ens-card p-6"
+                                className="gsap-verify-card ens-card p-6"
                         >
                             <h3 className="text-lg font-bold text-brand-dark mb-4">Privacy Benefits</h3>
 
@@ -438,7 +476,7 @@ export default function VerifyPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.35 }}
-                            className="ens-card p-6"
+                            className="gsap-verify-card ens-card p-6"
                         >
                             <h3 className="text-lg font-bold text-brand-dark mb-4">Onchain Verification Flow</h3>
                             <div className="space-y-3 text-sm text-slate-600">
@@ -469,7 +507,7 @@ export default function VerifyPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="mt-10 ens-card p-8"
+                    className="gsap-verify-card mt-10 ens-card ens-glass p-8"
                 >
                     <div className="flex flex-col gap-2 mb-6">
                         <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Tier Scoring</p>
@@ -484,7 +522,7 @@ export default function VerifyPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                            <h4 className="font-semibold text-brand-dark mb-3">Score Composition (0-1000)</h4>
+                            <h4 className="font-semibold text-brand-dark mb-3">Score mix</h4>
                             <div className="space-y-3 text-sm text-slate-600">
                                 <div className="flex items-center justify-between">
                                     <span>Wallet age &amp; activity</span>
@@ -505,7 +543,7 @@ export default function VerifyPage() {
                             </div>
                         </div>
                         <div className="bg-white rounded-2xl p-5 border border-slate-100">
-                            <h4 className="font-semibold text-brand-dark mb-3">Normalization Formula</h4>
+                            <h4 className="font-semibold text-brand-dark mb-3">Formula</h4>
                             <p className="text-sm text-slate-600">
                                 score = 1000 × (0.20 × wallet_age + 0.30 × holdings + 0.30 × defi_activity + 0.20 × dao_participation)
                             </p>

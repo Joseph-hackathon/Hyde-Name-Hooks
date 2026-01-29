@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Shield, TrendingUp, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import { checkAccess } from '../lib/api';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 interface Pool {
     id: string;
@@ -71,6 +73,7 @@ const MOCK_POOLS: Pool[] = [
 ];
 
 export default function PoolsPage() {
+    const rootRef = useRef<HTMLDivElement>(null);
     const { contextScore, address, isConnected, ensName, tierName } = useWallet();
     const [filter, setFilter] = React.useState<'all' | 'privacy' | 'open'>('all');
     const [accessMap, setAccessMap] = React.useState<Record<string, boolean>>({});
@@ -110,9 +113,45 @@ export default function PoolsPage() {
         loadAccess();
     }, [address, isConnected, contextScore]);
 
+    useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        const ctx = gsap.context(() => {
+            gsap.from('.gsap-pools-header', {
+                y: 20,
+                autoAlpha: 0,
+                duration: 0.7,
+                ease: 'power3.out',
+                stagger: 0.1,
+                clearProps: 'transform,opacity',
+            });
+
+            gsap.utils.toArray<HTMLElement>('.gsap-pool-card').forEach((card, index) => {
+                gsap.from(card, {
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top 80%',
+                    },
+                    y: 24,
+                    autoAlpha: 0,
+                    duration: 0.7,
+                    ease: 'power2.out',
+                    delay: index * 0.04,
+                    clearProps: 'transform,opacity',
+                });
+            });
+        }, rootRef);
+
+        return () => ctx.revert();
+    }, []);
+
     return (
-        <div className="bg-background min-h-screen p-6">
-            <div className="max-w-6xl mx-auto">
+        <div ref={rootRef} className="ens-page p-6">
+            <div className="pointer-events-none absolute inset-0 ens-grid" />
+            <div className="pointer-events-none absolute inset-0 ens-noise" />
+            <div className="pointer-events-none absolute -top-24 right-0 h-64 w-64 rounded-full bg-indigo-100 blur-3xl opacity-70" />
+            <div className="pointer-events-none absolute top-48 left-0 h-72 w-72 rounded-full bg-blue-100 blur-3xl opacity-70" />
+
+            <div className="relative z-10 max-w-6xl mx-auto">
 
                 {/* Header */}
                 <motion.div
@@ -120,11 +159,11 @@ export default function PoolsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-6 space-y-2"
                 >
-                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Pools</p>
-                    <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-dark">
-                        Privacy-Enhanced Pools
+                    <p className="gsap-pools-header text-xs uppercase tracking-[0.35em] text-slate-400">Pools</p>
+                    <h1 className="gsap-pools-header text-4xl md:text-5xl font-display font-bold text-brand-dark">
+                        Private pools
                     </h1>
-                    <p className="text-lg text-slate-600">
+                    <p className="gsap-pools-header text-lg text-slate-600">
                         Browse ENS context-gated pools. <strong>Prove your tier, keep your privacy, access better execution.</strong>
                     </p>
                 </motion.div>
@@ -158,7 +197,7 @@ export default function PoolsPage() {
                                 : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
-                        All Pools
+                        All
                     </button>
                     <button
                         onClick={() => setFilter('privacy')}
@@ -168,7 +207,7 @@ export default function PoolsPage() {
                             }`}
                     >
                         <Lock className="w-4 h-4" />
-                        Privacy-Enhanced
+                        Private
                     </button>
                     <button
                         onClick={() => setFilter('open')}
@@ -177,7 +216,7 @@ export default function PoolsPage() {
                                 : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
-                        Open Access
+                        Open
                     </button>
                 </motion.div>
 
@@ -192,7 +231,7 @@ export default function PoolsPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 + index * 0.05 }}
-                                className={`ens-card p-6 hover:shadow-lg ${hasAccess ? 'border-slate-100' : 'border-red-200 opacity-75'
+                                className={`gsap-pool-card ens-card ens-glass p-6 hover:shadow-lg ${hasAccess ? 'border-slate-100' : 'border-red-200 opacity-75'
                                     }`}
                             >
                                 {/* Pool Header */}
@@ -252,7 +291,7 @@ export default function PoolsPage() {
                                     <div className="bg-indigo-50 p-3 rounded-xl mb-4 text-sm border border-indigo-100">
                                         <span className="text-slate-700">
                                             <Shield className="w-4 h-4 inline mr-2 text-brand-blue" />
-                                            <strong>Privacy-Enhanced:</strong> Selective disclosure enforced
+                                            <strong>Private:</strong> Selective disclosure enforced
                                         </span>
                                     </div>
                                 )}
@@ -263,7 +302,7 @@ export default function PoolsPage() {
                                         <>
                                             <Link to="/app" className="flex-1">
                                                 <Button className="w-full" size="sm">
-                                                    Trade with Privacy
+                                                    Trade
                                                 </Button>
                                             </Link>
                                             <Button variant="outline" size="sm" className="flex-shrink-0">
@@ -273,7 +312,7 @@ export default function PoolsPage() {
                                     ) : (
                                         <Link to="/verify" className="flex-1">
                                             <Button variant="outline" className="w-full" size="sm">
-                                                Claim Tier to Unlock
+                                                Claim to unlock
                                             </Button>
                                         </Link>
                                     )}
@@ -291,14 +330,14 @@ export default function PoolsPage() {
                     className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[2rem] p-8 border border-slate-100"
                 >
                     <h2 className="text-2xl font-display font-bold text-brand-dark mb-4">
-                        Why Privacy-Enhanced Pools?
+                        Why private pools?
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm">
                                 <Lock className="w-6 h-6 text-brand-blue" />
                             </div>
-                            <h3 className="font-bold text-brand-dark mb-2">Selective Disclosure</h3>
+                            <h3 className="font-bold text-brand-dark mb-2">Selective proof</h3>
                             <p className="text-sm text-slate-700">
                                 Only verified tier members can trade. Prove eligibility without revealing your full history.
                             </p>
@@ -307,7 +346,7 @@ export default function PoolsPage() {
                             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm">
                                 <Shield className="w-6 h-6 text-brand-blue" />
                             </div>
-                            <h3 className="font-bold text-brand-dark mb-2">MEV Resistance</h3>
+                            <h3 className="font-bold text-brand-dark mb-2">MEV shield</h3>
                             <p className="text-sm text-slate-700">
                                 Tier gating and execution privacy drastically reduce sandwich attacks and toxic flow.
                             </p>
@@ -316,7 +355,7 @@ export default function PoolsPage() {
                             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm">
                                 <TrendingUp className="w-6 h-6 text-brand-blue" />
                             </div>
-                            <h3 className="font-bold text-brand-dark mb-2">Better LP Returns</h3>
+                            <h3 className="font-bold text-brand-dark mb-2">LP upside</h3>
                             <p className="text-sm text-slate-700">
                                 LPs earn more from reduced adverse selection and consistent volume from trusted traders.
                             </p>

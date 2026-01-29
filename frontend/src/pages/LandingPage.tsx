@@ -1,9 +1,81 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Globe, Shield, Sparkles, Users, Wallet } from 'lucide-react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Button from '../components/ui/Button';
 
 export default function LandingPage() {
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        const ctx = gsap.context(() => {
+            gsap.from('.gsap-hero-line', {
+                y: 24,
+                autoAlpha: 0,
+                duration: 0.9,
+                ease: 'power3.out',
+                stagger: 0.12,
+                clearProps: 'transform,opacity',
+            });
+
+            gsap.utils.toArray<HTMLElement>('.gsap-card:not(.gsap-card-item)').forEach((card) => {
+                gsap.from(card, {
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top 80%',
+                    },
+                    y: 26,
+                    autoAlpha: 0,
+                    duration: 0.8,
+                    ease: 'power2.out',
+                    clearProps: 'transform,opacity',
+                });
+            });
+
+            const cardItems = gsap.utils.toArray<HTMLElement>('.gsap-card-item');
+            const yOffsets = gsap.utils.wrap([-18, -10, -4, 6, 14]);
+            const delays = gsap.utils.wrap([0, 0.04, 0.08, 0.12]);
+            cardItems.forEach((card, index) => {
+                gsap.set(card, { y: yOffsets(index) });
+                gsap.fromTo(
+                    card,
+                    { autoAlpha: 0, y: yOffsets(index) + 16 },
+                    {
+                        autoAlpha: 1,
+                        y: yOffsets(index),
+                        duration: 0.75,
+                        ease: 'power3.out',
+                        delay: delays(index),
+                        scrollTrigger: {
+                            trigger: card,
+                            start: 'top 85%',
+                        },
+                        clearProps: 'transform,opacity',
+                    }
+                );
+            });
+
+            gsap.utils.toArray<HTMLElement>('.gsap-float').forEach((chip) => {
+                gsap.to(chip, {
+                    x: gsap.utils.random(-10, 10),
+                    y: gsap.utils.random(-14, 14),
+                    duration: gsap.utils.random(4, 7),
+                    ease: 'sine.inOut',
+                    yoyo: true,
+                    repeat: -1,
+                });
+            });
+        }, rootRef);
+
+        return () => {
+            gsap.killTweensOf('.gsap-float');
+            ctx.revert();
+        };
+    }, []);
+
     const nameChips = [
         {
             label: 'uni.eth',
@@ -78,8 +150,10 @@ export default function LandingPage() {
     ];
 
     return (
-        <div className="relative bg-background min-h-screen overflow-hidden">
-            <section className="relative pt-28 pb-24">
+        <div ref={rootRef} className="ens-page">
+            <div className="pointer-events-none absolute inset-0 ens-grid" />
+            <div className="pointer-events-none absolute inset-0 ens-noise" />
+            <section className="relative pt-20 pb-16">
                 <div className="absolute inset-0 bg-gradient-to-b from-white via-slate-50 to-transparent" />
                 <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-indigo-100 blur-3xl opacity-60" />
                 <div className="absolute top-40 left-0 h-64 w-64 rounded-full bg-blue-100 blur-3xl opacity-60" />
@@ -116,14 +190,14 @@ export default function LandingPage() {
                         transition={{ duration: 0.8, ease: [0.05, 0.7, 0.1, 1.0] }}
                         className="space-y-8"
                     >
-                        <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Hyde Name Hooks</p>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-brand-dark">
-                            Welcome to the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED]">New Internet</span>
+                        <p className="gsap-hero-line text-xs uppercase tracking-[0.35em] text-slate-400">Hyde Name Hooks</p>
+                        <h1 className="gsap-hero-line text-5xl md:text-7xl font-black tracking-tight text-brand-dark">
+                            Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED]">private DeFi story</span>
                         </h1>
-                        <p className="text-lg text-slate-600 max-w-xl leading-relaxed">
+                        <p className="gsap-hero-line text-lg text-slate-600 max-w-xl leading-relaxed">
                             ENS-powered privacy for Uniswap v4. Prove your tier without exposing your strategy.
                         </p>
-                        <div className="flex flex-wrap gap-4 items-center">
+                        <div className="gsap-hero-line flex flex-wrap gap-4 items-center">
                             <Link to="/app" className="inline-flex">
                                 <Button size="lg">
                                     Launch App
@@ -134,7 +208,7 @@ export default function LandingPage() {
                                 <Button variant="outline" size="lg">Verify ENS</Button>
                             </Link>
                         </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+                        <div className="gsap-hero-line flex flex-wrap gap-4 text-sm text-slate-500">
                             <span className="flex items-center gap-2"><Wallet className="w-4 h-4 text-brand-blue" /> Wallet-ready</span>
                             <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-brand-blue" /> Selective disclosure</span>
                             <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-brand-blue" /> MEV protection</span>
@@ -145,11 +219,11 @@ export default function LandingPage() {
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2, ease: [0.05, 0.7, 0.1, 1.0] }}
-                        className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-8 space-y-6"
+                        className="gsap-card ens-glass rounded-[2.5rem] shadow-xl border border-slate-100 p-8 space-y-6"
                     >
                         <div>
                             <p className="text-xs uppercase tracking-[0.35em] text-slate-400 mb-2">Your name</p>
-                            <h2 className="text-3xl font-bold text-brand-dark">Claim ENS context</h2>
+                            <h2 className="text-3xl font-bold text-brand-dark">Claim your tier</h2>
                         </div>
                         <input
                             type="text"
@@ -176,7 +250,7 @@ export default function LandingPage() {
                         {nameChips.map((chip, index) => (
                             <motion.div
                                 key={chip.label}
-                                className={`absolute ${chip.className} px-4 py-2 rounded-xl text-base font-semibold shadow-sm`}
+                                className={`gsap-float absolute ${chip.className} px-4 py-2 rounded-xl text-base font-semibold shadow-sm`}
                                 style={{ backgroundColor: chip.bg, color: chip.text }}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: [0, -8, 0] }}
@@ -189,8 +263,187 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="relative py-20 container mx-auto px-6">
-                <div className="absolute -left-6 top-8 h-20 w-40 rounded-sm border border-blue-200/60 bg-blue-50/70">
+            <section className="relative py-12 container mx-auto px-6">
+                <div className="gsap-card ens-glass rounded-[2.5rem] border border-slate-100 shadow-soft p-8">
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <div>
+                            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Flow</p>
+                        <h2 className="text-2xl md:text-3xl font-black text-brand-dark mt-2">How it works</h2>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-slate-400">
+                            <span>Onchain</span>
+                            <span className="text-slate-300">+</span>
+                            <span>Offchain</span>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-6 lg:grid-cols-4">
+                        {[
+                            {
+                                step: '01',
+                                title: 'Verify',
+                                body: 'Connect wallet and prove ENS ownership for a stable identity layer.',
+                                accent: 'bg-blue-50 text-blue-600'
+                            },
+                            {
+                                step: '02',
+                                title: 'Score',
+                                body: 'Compute activity, holdings, and reputation into a portable score.',
+                                accent: 'bg-indigo-50 text-indigo-600'
+                            },
+                            {
+                                step: '03',
+                                title: 'Register',
+                                body: 'Write only the tier to the registry—scores stay private.',
+                                accent: 'bg-fuchsia-50 text-fuchsia-600'
+                            },
+                            {
+                                step: '04',
+                                title: 'Swap',
+                                body: 'Uniswap v4 Hook enforces cooldown and tier gating at execution.',
+                                accent: 'bg-emerald-50 text-emerald-600'
+                            }
+                        ].map((item) => (
+                            <div key={item.step} className="gsap-card gsap-card-item bg-white/70 rounded-3xl border border-slate-100 p-6">
+                                <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${item.accent}`}>
+                                    Step {item.step}
+                                </div>
+                                <h3 className="text-xl font-bold text-brand-dark mt-4 mb-2">{item.title}</h3>
+                                <p className="text-sm text-slate-600 leading-relaxed">{item.body}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-8 flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-slate-400">
+                        <span className="h-px flex-1 bg-slate-200" />
+                        <span>Selective Disclosure</span>
+                        <span className="h-px flex-1 bg-slate-200" />
+                    </div>
+                </div>
+            </section>
+
+            <section className="relative py-10 container mx-auto px-6">
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-6 border border-slate-100">
+                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Use Case</p>
+                        <h3 className="text-xl font-bold text-brand-dark mt-3">Private swaps</h3>
+                        <p className="text-sm text-slate-600 mt-2">
+                            Traders unlock better routes without exposing full on-chain identity or strategy.
+                        </p>
+                    </div>
+                    <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-6 border border-slate-100">
+                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Use Case</p>
+                        <h3 className="text-xl font-bold text-brand-dark mt-3">LP protection</h3>
+                        <p className="text-sm text-slate-600 mt-2">
+                            Hooks enforce cooldowns and tier checks to reduce toxic flow and MEV pressure.
+                        </p>
+                    </div>
+                    <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-6 border border-slate-100">
+                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Use Case</p>
+                        <h3 className="text-xl font-bold text-brand-dark mt-3">Proof-ready access</h3>
+                        <p className="text-sm text-slate-600 mt-2">
+                            Eligibility proofs can be shared without exposing raw scores or wallet history.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="relative py-14 container mx-auto px-6">
+                <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-center">
+                    <div className="space-y-5">
+                        <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Project</p>
+                        <h2 className="text-4xl md:text-5xl font-black text-brand-dark">
+                            Identity + privacy
+                        </h2>
+                        <p className="text-lg text-slate-600">
+                            We use ENS as a trust anchor, compute a context score from real on-chain activity, and gate
+                            Uniswap v4 swaps through hooks. The result: privacy-preserving tiers for traders and safer
+                            orderflow for LPs.
+                        </p>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-5 border border-slate-100">
+                                <div className="flex items-center gap-3 text-sm font-semibold text-brand-dark">
+                                    <Shield className="w-4 h-4 text-brand-blue" />
+                                    Privacy by default
+                                </div>
+                                <p className="text-xs text-slate-600 mt-2">
+                                    Only tier proofs go onchain. Raw scores and inputs stay private.
+                                </p>
+                            </div>
+                            <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-5 border border-slate-100">
+                                <div className="flex items-center gap-3 text-sm font-semibold text-brand-dark">
+                                    <Globe className="w-4 h-4 text-brand-blue" />
+                                    Cross-chain ready
+                                </div>
+                                <p className="text-xs text-slate-600 mt-2">
+                                    Supports Sepolia, Base Sepolia, and Unichain Sepolia registries.
+                                </p>
+                            </div>
+                            <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-5 border border-slate-100">
+                                <div className="flex items-center gap-3 text-sm font-semibold text-brand-dark">
+                                    <Users className="w-4 h-4 text-brand-blue" />
+                                    Tiered access
+                                </div>
+                                <p className="text-xs text-slate-600 mt-2">
+                                    Standard, Trusted, and Elite tiers unlock liquidity experiences.
+                                </p>
+                            </div>
+                            <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-5 border border-slate-100">
+                                <div className="flex items-center gap-3 text-sm font-semibold text-brand-dark">
+                                    <Sparkles className="w-4 h-4 text-brand-blue" />
+                                    MEV-aware execution
+                                </div>
+                                <p className="text-xs text-slate-600 mt-2">
+                                    Hooks enforce cooldowns and context checks at swap time.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-8 border border-slate-100 shadow-xl space-y-5">
+                        <div>
+                            <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Architecture</p>
+                            <h3 className="text-2xl font-bold text-brand-dark mt-2">Signal flow</h3>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-start gap-3 text-sm text-slate-600">
+                                <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 font-semibold flex items-center justify-center">1</div>
+                                <div>
+                                    <strong className="text-brand-dark">ENS Lookup</strong>
+                                    <div className="text-xs mt-1">Resolve name, verify ownership, and normalize inputs.</div>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3 text-sm text-slate-600">
+                                <div className="h-8 w-8 rounded-full bg-indigo-50 text-indigo-600 font-semibold flex items-center justify-center">2</div>
+                                <div>
+                                    <strong className="text-brand-dark">Scoring Engine</strong>
+                                    <div className="text-xs mt-1">Compute on-chain activity, balances, and reputation.</div>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3 text-sm text-slate-600">
+                                <div className="h-8 w-8 rounded-full bg-fuchsia-50 text-fuchsia-600 font-semibold flex items-center justify-center">3</div>
+                                <div>
+                                    <strong className="text-brand-dark">Tier Registry</strong>
+                                    <div className="text-xs mt-1">Write only the tier to onchain registry.</div>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3 text-sm text-slate-600">
+                                <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 font-semibold flex items-center justify-center">4</div>
+                                <div>
+                                    <strong className="text-brand-dark">Hook Execution</strong>
+                                    <div className="text-xs mt-1">Uniswap v4 Hook gates swaps and enforces cooldown.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <Wallet className="w-4 h-4 text-brand-blue" />
+                            Portable identity with verifiable privacy.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="relative py-14 container mx-auto px-6">
+                <div className="absolute -left-6 top-8 h-20 w-40 rounded-sm border border-blue-200/60 bg-blue-50/70 z-0">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.25)_1px,transparent_0)] [background-size:6px_6px]" />
                     <motion.div
                         className="absolute -left-4 top-5 h-5 w-5 rounded-sm bg-white shadow-sm"
@@ -198,7 +451,7 @@ export default function LandingPage() {
                         transition={{ duration: 18, repeat: Infinity, ease: 'linear', delay: 0.8 }}
                     />
                 </div>
-                <div className="grid gap-8 lg:grid-cols-3">
+                <div className="relative z-10 grid gap-8 lg:grid-cols-3">
                     {pillars.map((pillar) => {
                         const Icon = pillar.icon;
                         return (
@@ -208,7 +461,7 @@ export default function LandingPage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.6 }}
-                                className={`rounded-[2rem] p-8 border border-white/60 shadow-soft ${pillar.tint} hover:-translate-y-1 transition-transform`}
+                                className={`gsap-card gsap-card-item rounded-[2rem] p-8 border border-white/60 shadow-soft ${pillar.tint} hover:-translate-y-1 transition-transform`}
                             >
                                 <div className="w-12 h-12 rounded-2xl bg-white/80 flex items-center justify-center mb-6">
                                     <Icon className="w-6 h-6 text-brand-blue" />
@@ -221,7 +474,7 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="relative py-20 bg-slate-50 overflow-hidden">
+            <section className="relative py-16 bg-slate-50 overflow-hidden">
                 <div className="absolute right-10 top-10 h-28 w-28 rounded-sm border border-fuchsia-200/60 bg-fuchsia-50/70">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(236,72,153,0.22)_1px,transparent_0)] [background-size:6px_6px]" />
                     <motion.div
@@ -241,7 +494,7 @@ export default function LandingPage() {
                 <div className="container mx-auto px-6 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-center">
                     <div className="space-y-6">
                         <h2 className="text-4xl md:text-5xl font-black text-brand-dark">
-                            Your gateway to selective disclosure.
+                            Proof without exposure.
                         </h2>
                         <p className="text-lg text-slate-600">
                             Hyde links ENS identity to tiered execution, so you can trade with privacy while keeping eligibility verifiable.
@@ -251,7 +504,7 @@ export default function LandingPage() {
                                 <Link
                                     key={item.title}
                                     to={item.to}
-                                    className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group"
+                                    className="gsap-card gsap-card-item ens-glass rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group"
                                 >
                                     <h4 className="text-xl font-bold text-brand-dark mb-2">{item.title}</h4>
                                     <p className="text-sm text-slate-600 mb-4">{item.body}</p>
@@ -263,8 +516,8 @@ export default function LandingPage() {
                             ))}
                         </div>
                     </div>
-                    <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl space-y-6">
-                        <h3 className="text-2xl font-bold text-brand-dark">Hyde context signal</h3>
+                    <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-8 border border-slate-100 shadow-xl space-y-6">
+                        <h3 className="text-2xl font-bold text-brand-dark">Hyde signal</h3>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-slate-500">Tier</span>
@@ -288,7 +541,7 @@ export default function LandingPage() {
             </section>
 
             <section className="relative py-20 container mx-auto px-6">
-                <div className="absolute right-0 top-0 h-24 w-48 rounded-sm border border-blue-200/60 bg-blue-50/70">
+                <div className="absolute right-0 top-0 h-24 w-48 rounded-sm border border-blue-200/60 bg-blue-50/70 z-0">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.2)_1px,transparent_0)] [background-size:6px_6px]" />
                     <motion.div
                         className="absolute -left-4 top-5 h-5 w-5 rounded-sm bg-white shadow-sm"
@@ -296,16 +549,16 @@ export default function LandingPage() {
                         transition={{ duration: 18, repeat: Infinity, ease: 'linear', delay: 0.6 }}
                     />
                 </div>
-                <div className="grid gap-6 md:grid-cols-3">
-                    <div className="rounded-[2rem] border border-slate-100 p-8 bg-white shadow-soft hover:shadow-md transition-shadow">
+                <div className="relative z-10 grid gap-6 md:grid-cols-3">
+                    <div className="gsap-card gsap-card-item rounded-[2rem] border border-slate-100 p-8 bg-white shadow-soft hover:shadow-md transition-shadow">
                         <p className="text-4xl font-black text-brand-dark">638k+</p>
                         <p className="text-sm uppercase tracking-[0.3em] text-slate-400 mt-2">Owners</p>
                     </div>
-                    <div className="rounded-[2rem] border border-slate-100 p-8 bg-white shadow-soft hover:shadow-md transition-shadow">
+                    <div className="gsap-card gsap-card-item rounded-[2rem] border border-slate-100 p-8 bg-white shadow-soft hover:shadow-md transition-shadow">
                         <p className="text-4xl font-black text-brand-dark">1.3m+</p>
                         <p className="text-sm uppercase tracking-[0.3em] text-slate-400 mt-2">Names</p>
                     </div>
-                    <div className="rounded-[2rem] border border-slate-100 p-8 bg-white shadow-soft hover:shadow-md transition-shadow">
+                    <div className="gsap-card gsap-card-item rounded-[2rem] border border-slate-100 p-8 bg-white shadow-soft hover:shadow-md transition-shadow">
                         <p className="text-4xl font-black text-brand-dark">600+</p>
                         <p className="text-sm uppercase tracking-[0.3em] text-slate-400 mt-2">Integrations</p>
                     </div>
@@ -313,7 +566,7 @@ export default function LandingPage() {
             </section>
 
             <section className="relative pb-24 container mx-auto px-6">
-                <div className="absolute left-8 -top-6 h-16 w-36 rounded-sm border border-fuchsia-200/60 bg-fuchsia-50/70">
+                <div className="absolute left-8 -top-6 h-16 w-36 rounded-sm border border-fuchsia-200/60 bg-fuchsia-50/70 z-0">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(236,72,153,0.2)_1px,transparent_0)] [background-size:6px_6px]" />
                     <motion.div
                         className="absolute -left-3 top-3 h-4 w-4 rounded-sm bg-white shadow-sm"
@@ -321,10 +574,10 @@ export default function LandingPage() {
                         transition={{ duration: 15, repeat: Infinity, ease: 'linear', delay: 0.9 }}
                     />
                 </div>
-                <div className="bg-gradient-to-br from-pastel-blue via-pastel-pink to-pastel-green p-1 rounded-[2.5rem]">
+                <div className="relative z-10 bg-gradient-to-br from-pastel-blue via-pastel-pink to-pastel-green p-1 rounded-[2.5rem]">
                     <div className="bg-white rounded-[2.4rem] px-10 py-12 text-center space-y-4">
                         <h3 className="text-3xl md:text-4xl font-black text-brand-dark">
-                            Ready to trade with privacy?
+                            Ready to trade privately?
                         </h3>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                             Connect your ENS name and unlock selective disclosure execution on Uniswap v4.
