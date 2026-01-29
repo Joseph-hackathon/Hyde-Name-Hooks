@@ -7,6 +7,23 @@ const router = Router();
 let ensService: ENSContextService;
 let contractService: ContractService;
 
+function requireServices(res: Response): boolean {
+    if (!ensService || !contractService) {
+        const missing = [
+            !process.env.SEPOLIA_RPC_URL && !process.env.MAINNET_RPC_URL ? 'SEPOLIA_RPC_URL' : null,
+            !process.env.BACKEND_PRIVATE_KEY ? 'BACKEND_PRIVATE_KEY' : null,
+            !process.env.REGISTRY_CONTRACT_ADDRESS ? 'REGISTRY_CONTRACT_ADDRESS' : null,
+        ].filter(Boolean);
+
+        res.status(503).json({
+            error: 'Backend not configured',
+            missing,
+        });
+        return false;
+    }
+    return true;
+}
+
 /**
  * Initialize services
  */
@@ -25,6 +42,8 @@ export function initializeServices(
  */
 router.post('/verify-ens', async (req: Request, res: Response) => {
     try {
+        if (!requireServices(res)) return;
+
         const { ensName, address } = req.body;
 
         if (!ensName || !address) {
@@ -77,6 +96,8 @@ router.post('/verify-ens', async (req: Request, res: Response) => {
  */
 router.get('/context-score/:address', async (req: Request, res: Response) => {
     try {
+        if (!requireServices(res)) return;
+
         const { address } = req.params;
 
         if (!address) {
@@ -109,6 +130,8 @@ router.get('/context-score/:address', async (req: Request, res: Response) => {
  */
 router.get('/tier/:address', async (req: Request, res: Response) => {
     try {
+        if (!requireServices(res)) return;
+
         const { address } = req.params;
 
         if (!address) {
@@ -148,6 +171,8 @@ router.get('/tier/:address', async (req: Request, res: Response) => {
  */
 router.get('/check-access/:address/:minTier', async (req: Request, res: Response) => {
     try {
+        if (!requireServices(res)) return;
+
         const { address, minTier } = req.params;
 
         if (!address || minTier === undefined) {
