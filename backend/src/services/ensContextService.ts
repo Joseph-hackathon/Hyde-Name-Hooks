@@ -146,7 +146,7 @@ export class ENSContextService {
                 }
             }));
 
-            const total = scores.reduce((sum, value) => sum + value, 0);
+            const total = scores.reduce((sum, value) => sum + value, 0 as number);
             return Math.min(total, 300);
         } catch {
             return 0;
