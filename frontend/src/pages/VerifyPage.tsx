@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useChainId } from 'wagmi';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import { verifyEns } from '../lib/api';
+import { CHAINS } from '../config/contracts';
 
 export default function VerifyPage() {
     const { isConnected, contextScore, setContextScore, address, setEnsName, ensName, tierName } = useWallet();
@@ -12,6 +14,28 @@ export default function VerifyPage() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [claimResult, setClaimResult] = useState<{
+        ensName: string;
+        address: string;
+        tier: number;
+        tierName: string;
+        totalScore?: number;
+        breakdown?: {
+            transactionHistory: number;
+            tokenHoldings: number;
+            defiActivity: number;
+            daoParticipation: number;
+        };
+        txHash: string;
+    } | null>(null);
+    const chainId = useChainId();
+    const chainConfig = useMemo(() => {
+        return (
+            Object.values(CHAINS).find((chain) => chain.id === chainId) || CHAINS.sepolia
+        );
+    }, [chainId]);
+    const registryAddress = chainConfig.contracts.registry;
+    const hookAddress = chainConfig.contracts.hook;
     const tabs = [
         { label: 'Swap', to: '/app' },
         { label: 'Verify', to: '/verify' },
@@ -24,14 +48,17 @@ export default function VerifyPage() {
         setIsVerifying(true);
         setVerificationStatus('idle');
         setErrorMessage(null);
+        setClaimResult(null);
 
         try {
             const result = await verifyEns(searchName.trim(), address);
             const score =
-                result.tierName === 'Elite' ? 920 :
-                    result.tierName === 'Trusted' ? 850 : 720;
+                result.totalScore ??
+                (result.tierName === 'Elite' ? 920 :
+                    result.tierName === 'Trusted' ? 850 : 720);
             setContextScore(score);
             setEnsName(result.ensName);
+            setClaimResult(result);
             setVerificationStatus('success');
         } catch (error: any) {
             setVerificationStatus('error');
@@ -152,6 +179,55 @@ export default function VerifyPage() {
                                 </div>
                             </motion.div>
                         )}
+                        {verificationStatus === 'success' && claimResult && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="ens-card p-6 border border-emerald-100/80 mb-6"
+                            >
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                                            Claim Summary
+                                        </p>
+                                        <h3 className="text-xl font-display font-bold text-brand-dark">
+                                            {claimResult.ensName}
+                                        </h3>
+                                    </div>
+                                    <span className="ens-chip">Claimed</span>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span className="text-slate-500">Wallet</span>
+                                        <span className="font-mono text-xs text-brand-dark">
+                                            {claimResult.address}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span className="text-slate-500">Tier</span>
+                                        <span className="font-semibold text-brand-dark">{claimResult.tierName}</span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span className="text-slate-500">Context Score</span>
+                                        <span className="font-semibold text-brand-dark">
+                                            {claimResult.totalScore ?? contextScore ?? 0}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span className="text-slate-500">Registry Contract</span>
+                                        <span className="font-mono text-xs text-brand-dark">{registryAddress}</span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span className="text-slate-500">Hook Contract</span>
+                                        <span className="font-mono text-xs text-brand-dark">{hookAddress}</span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span className="text-slate-500">Tx Hash</span>
+                                        <span className="font-mono text-xs text-brand-dark">{claimResult.txHash}</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
                         {verificationStatus === 'error' && errorMessage && (
                             <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-sm text-red-700 mb-6">
                                 {errorMessage}
@@ -231,6 +307,37 @@ export default function VerifyPage() {
                                             style={{ width: `${(contextScore / 1000) * 100}%` }}
                                         />
                                     </div>
+                                </div>
+                            </motion.div>
+                        )}
+                        {verificationStatus === 'success' && claimResult?.breakdown && (
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.25 }}
+                                className="ens-card p-6"
+                            >
+                                <h3 className="text-lg font-bold text-brand-dark mb-4">Score Breakdown</h3>
+                                <div className="space-y-3 text-sm text-slate-600">
+                                    {[
+                                        { label: 'Wallet activity', value: claimResult.breakdown.transactionHistory, max: 300 },
+                                        { label: 'Token holdings', value: claimResult.breakdown.tokenHoldings, max: 300 },
+                                        { label: 'DeFi activity', value: claimResult.breakdown.defiActivity, max: 200 },
+                                        { label: 'DAO participation', value: claimResult.breakdown.daoParticipation, max: 200 },
+                                    ].map((item) => (
+                                        <div key={item.label} className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span>{item.label}</span>
+                                                <span className="font-semibold text-brand-dark">{item.value}</span>
+                                            </div>
+                                            <div className="w-full bg-slate-100 rounded-full h-2">
+                                                <div
+                                                    className="bg-brand-blue h-2 rounded-full"
+                                                    style={{ width: `${Math.min(item.value / item.max, 1) * 100}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </motion.div>
                         )}

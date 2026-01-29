@@ -77,8 +77,8 @@ router.post('/verify-ens', async (req: Request, res: Response) => {
                 address,
                 tier: contextScore.tier,
                 tierName: ['Standard', 'Trusted', 'Elite'][contextScore.tier],
-                // Note: We don't expose totalScore in response (selective disclosure)
-                // Only tier is revealed
+                totalScore: contextScore.totalScore,
+                breakdown: contextScore.breakdown,
                 txHash,
             },
         });

@@ -53,6 +53,13 @@ export async function verifyEns(ensName: string, address: string) {
     address: string;
     tier: number;
     tierName: string;
+    totalScore?: number;
+    breakdown?: {
+      transactionHistory: number;
+      tokenHoldings: number;
+      defiActivity: number;
+      daoParticipation: number;
+    };
     txHash: string;
   }>('/api/verify-ens', {
     method: 'POST',
