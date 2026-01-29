@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle, Shield, TrendingUp, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -36,6 +36,7 @@ export default function VerifyPage() {
     }, [chainId]);
     const registryAddress = chainConfig.contracts.registry;
     const hookAddress = chainConfig.contracts.hook;
+    const claimStorageKey = address ? `hyde_claim_result_${address.toLowerCase()}` : null;
     const tabs = [
         { label: 'Swap', to: '/app' },
         { label: 'Verify', to: '/verify' },
@@ -59,6 +60,15 @@ export default function VerifyPage() {
             setContextScore(score);
             setEnsName(result.ensName);
             setClaimResult(result);
+            if (claimStorageKey) {
+                localStorage.setItem(
+                    claimStorageKey,
+                    JSON.stringify({
+                        ...result,
+                        storedAt: new Date().toISOString(),
+                    })
+                );
+            }
             setVerificationStatus('success');
         } catch (error: any) {
             setVerificationStatus('error');
@@ -67,6 +77,23 @@ export default function VerifyPage() {
             setIsVerifying(false);
         }
     };
+
+    useEffect(() => {
+        if (!claimStorageKey) {
+            setClaimResult(null);
+            return;
+        }
+        const stored = localStorage.getItem(claimStorageKey);
+        if (!stored) return;
+        try {
+            const parsed = JSON.parse(stored);
+            if (parsed?.ensName && parsed?.txHash) {
+                setClaimResult(parsed);
+            }
+        } catch {
+            // ignore invalid cached data
+        }
+    }, [claimStorageKey]);
 
     if (!isConnected) {
         return (
@@ -179,7 +206,7 @@ export default function VerifyPage() {
                                 </div>
                             </motion.div>
                         )}
-                        {verificationStatus === 'success' && claimResult && (
+                        {(verificationStatus === 'success' || tierName || claimResult) && (
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -191,7 +218,7 @@ export default function VerifyPage() {
                                             Claim Summary
                                         </p>
                                         <h3 className="text-xl font-display font-bold text-brand-dark">
-                                            {claimResult.ensName}
+                                            {claimResult?.ensName || ensName || 'Unnamed'}
                                         </h3>
                                     </div>
                                     <span className="ens-chip">Claimed</span>
@@ -200,17 +227,19 @@ export default function VerifyPage() {
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <span className="text-slate-500">Wallet</span>
                                         <span className="font-mono text-xs text-brand-dark">
-                                            {claimResult.address}
+                                            {claimResult?.address || address}
                                         </span>
                                     </div>
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <span className="text-slate-500">Tier</span>
-                                        <span className="font-semibold text-brand-dark">{claimResult.tierName}</span>
+                                        <span className="font-semibold text-brand-dark">
+                                            {claimResult?.tierName || tierName || 'Standard'}
+                                        </span>
                                     </div>
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <span className="text-slate-500">Context Score</span>
                                         <span className="font-semibold text-brand-dark">
-                                            {claimResult.totalScore ?? contextScore ?? 0}
+                                            {claimResult?.totalScore ?? contextScore ?? 0}
                                         </span>
                                     </div>
                                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -221,10 +250,12 @@ export default function VerifyPage() {
                                         <span className="text-slate-500">Hook Contract</span>
                                         <span className="font-mono text-xs text-brand-dark">{hookAddress}</span>
                                     </div>
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <span className="text-slate-500">Tx Hash</span>
-                                        <span className="font-mono text-xs text-brand-dark">{claimResult.txHash}</span>
-                                    </div>
+                                    {claimResult?.txHash && (
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            <span className="text-slate-500">Tx Hash</span>
+                                            <span className="font-mono text-xs text-brand-dark">{claimResult.txHash}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}
@@ -310,7 +341,7 @@ export default function VerifyPage() {
                                 </div>
                             </motion.div>
                         )}
-                        {verificationStatus === 'success' && claimResult?.breakdown && (
+                        {claimResult?.breakdown && (
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
