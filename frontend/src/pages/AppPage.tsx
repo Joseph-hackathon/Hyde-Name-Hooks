@@ -13,12 +13,17 @@ export default function AppPage() {
     const [payAmount, setPayAmount] = useState('');
     const [swapError, setSwapError] = useState<string | null>(null);
     const [swapMessage, setSwapMessage] = useState<string | null>(null);
+    const [payToken, setPayToken] = useState('ETH');
+    const [receiveToken, setReceiveToken] = useState('USDC');
 
     const swapConfig = useMemo(() => {
         if (chainId === CHAINS.sepolia.id) {
             return {
                 chainParam: 'sepolia',
-                outputCurrency: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC (Sepolia)
+                tokens: [
+                    { symbol: 'ETH', address: 'ETH', label: 'ETH' },
+                    { symbol: 'USDC', address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', label: 'USDC' },
+                ],
             };
         }
         return null;
@@ -60,6 +65,30 @@ export default function AppPage() {
         { label: 'Pools', to: '/pools' },
     ];
 
+    const tokens = swapConfig?.tokens ?? [
+        { symbol: 'ETH', address: 'ETH', label: 'ETH' },
+        { symbol: 'USDC', address: 'USDC', label: 'USDC' },
+    ];
+
+    const handleSwitch = () => {
+        setPayToken(receiveToken);
+        setReceiveToken(payToken);
+    };
+
+    const handlePayTokenChange = (value: string) => {
+        if (value === receiveToken) {
+            setReceiveToken(payToken);
+        }
+        setPayToken(value);
+    };
+
+    const handleReceiveTokenChange = (value: string) => {
+        if (value === payToken) {
+            setPayToken(receiveToken);
+        }
+        setReceiveToken(value);
+    };
+
     const handleSwap = () => {
         setSwapError(null);
         setSwapMessage(null);
@@ -78,7 +107,9 @@ export default function AppPage() {
             return;
         }
 
-        const url = `https://app.uniswap.org/#/swap?inputCurrency=ETH&outputCurrency=${swapConfig.outputCurrency}&exactAmount=${amount}&exactField=input&chain=${swapConfig.chainParam}`;
+        const inputToken = tokens.find((token) => token.symbol === payToken) ?? tokens[0];
+        const outputToken = tokens.find((token) => token.symbol === receiveToken) ?? tokens[1];
+        const url = `https://app.uniswap.org/#/swap?inputCurrency=${inputToken.address}&outputCurrency=${outputToken.address}&exactAmount=${amount}&exactField=input&chain=${swapConfig.chainParam}`;
         window.open(url, '_blank', 'noopener,noreferrer');
         setSwapMessage('Swap opened on Uniswap with Hyde context gating.');
     };
@@ -151,14 +182,32 @@ export default function AppPage() {
                                     placeholder="0.0"
                                     className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full"
                                 />
-                                <button className="bg-white hover:bg-slate-50 px-3 py-1 rounded-full font-semibold text-brand-dark flex items-center gap-2 mx-2 shadow-sm border border-slate-200">
-                                    ETH <span className="text-xs">▼</span>
-                                </button>
+                                <select
+                                    value={payToken}
+                                    onChange={(event) => handlePayTokenChange(event.target.value)}
+                                    className="bg-white hover:bg-slate-50 px-3 py-1 rounded-full font-semibold text-brand-dark flex items-center gap-2 mx-2 shadow-sm border border-slate-200"
+                                >
+                                    {tokens.map((token) => (
+                                        <option key={`pay-${token.symbol}`} value={token.symbol}>
+                                            {token.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
                         <div className="flex justify-center -my-2 relative z-10">
-                            <div className="bg-white border border-slate-200 p-2 rounded-xl shadow-sm cursor-pointer hover:scale-105 transition-transform">
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={handleSwitch}
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Enter' || event.key === ' ') {
+                                        handleSwitch();
+                                    }
+                                }}
+                                className="bg-white border border-slate-200 p-2 rounded-xl shadow-sm cursor-pointer hover:scale-105 transition-transform"
+                            >
                                 <Repeat className="w-5 h-5 text-brand-blue" />
                             </div>
                         </div>
@@ -175,9 +224,17 @@ export default function AppPage() {
                                     className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full"
                                     disabled
                                 />
-                                <button className="bg-brand-blue text-white px-3 py-1 rounded-full font-semibold flex items-center gap-2 mx-2 shadow-lg shadow-brand-blue/20">
-                                    USDC <span className="text-xs">▼</span>
-                                </button>
+                                <select
+                                    value={receiveToken}
+                                    onChange={(event) => handleReceiveTokenChange(event.target.value)}
+                                    className="bg-brand-blue text-white px-3 py-1 rounded-full font-semibold flex items-center gap-2 mx-2 shadow-lg shadow-brand-blue/20"
+                                >
+                                    {tokens.map((token) => (
+                                        <option key={`receive-${token.symbol}`} value={token.symbol}>
+                                            {token.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,15 @@
 import { Link, Outlet } from 'react-router-dom';
+import { useChainId, useSwitchChain } from 'wagmi';
 import ConnectButton from '../components/wallet/ConnectButton';
+import { useWallet } from '../contexts/WalletContext';
+import { CHAINS } from '../config/contracts';
 
 export default function RootLayout() {
+    const { ensName } = useWallet();
+    const chainId = useChainId();
+    const { switchChain } = useSwitchChain();
+    const chainOptions = Object.values(CHAINS);
+
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
@@ -35,6 +43,27 @@ export default function RootLayout() {
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-3">
+                        {ensName && (
+                            <div className="ens-chip">
+                                {ensName}
+                            </div>
+                        )}
+                        <select
+                            value={chainId ?? ''}
+                            onChange={(event) => {
+                                const targetId = Number(event.target.value);
+                                if (!Number.isNaN(targetId)) {
+                                    switchChain({ chainId: targetId });
+                                }
+                            }}
+                            className="bg-white border border-slate-200 text-sm font-semibold text-slate-700 rounded-full px-3 py-1 hover:border-indigo-200 transition-colors"
+                        >
+                            {chainOptions.map((chain) => (
+                                <option key={chain.id} value={chain.id}>
+                                    {chain.name}
+                                </option>
+                            ))}
+                        </select>
                         <ConnectButton />
                     </div>
                 </div>
