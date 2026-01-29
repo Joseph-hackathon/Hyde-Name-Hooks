@@ -9,12 +9,25 @@
   :root {
     --background: 255 255 255;
     --foreground: 15 23 42;
+    --font-sans: "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  html {
+    font-family: var(--font-sans);
   }
 
   body {
     @apply bg-background text-brand-dark antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--font-sans);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
   }
 }
 
