@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { useChainId, useSwitchChain } from 'wagmi';
+import { ChevronDown } from 'lucide-react';
 import ConnectButton from '../components/wallet/ConnectButton';
 import { useWallet } from '../contexts/WalletContext';
 import { CHAINS } from '../config/contracts';
@@ -10,6 +12,28 @@ export default function RootLayout() {
     const { switchChain } = useSwitchChain();
     const chainOptions = Object.values(CHAINS);
     type ChainId = typeof chainOptions[number]['id'];
+    const [isChainOpen, setIsChainOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+    const chainMeta: Record<number, { label: string; color: string }> = {
+        [CHAINS.sepolia.id]: { label: 'Sepolia', color: 'bg-indigo-500' },
+        [CHAINS.baseSepolia.id]: { label: 'Base', color: 'bg-blue-500' },
+        [CHAINS.unichainSepolia.id]: { label: 'Unichain', color: 'bg-emerald-500' },
+    };
+
+    const activeChain = chainOptions.find((chain) => chain.id === chainId) || CHAINS.sepolia;
+    const activeMeta = chainMeta[activeChain.id];
+
+    useEffect(() => {
+        const handleClick = (event: MouseEvent) => {
+            if (!dropdownRef.current) return;
+            if (!dropdownRef.current.contains(event.target as Node)) {
+                setIsChainOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
 
     return (
         <div className="min-h-screen bg-background">
@@ -49,22 +73,38 @@ export default function RootLayout() {
                                 {ensName}
                             </div>
                         )}
-                        <select
-                            value={chainId ?? ''}
-                            onChange={(event) => {
-                                const targetId = Number(event.target.value) as ChainId;
-                                if (!Number.isNaN(targetId)) {
-                                    switchChain({ chainId: targetId });
-                                }
-                            }}
-                            className="bg-white border border-slate-200 text-sm font-semibold text-slate-700 rounded-full px-3 py-1 hover:border-indigo-200 transition-colors"
-                        >
-                            {chainOptions.map((chain) => (
-                                <option key={chain.id} value={chain.id}>
-                                    {chain.name}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                type="button"
+                                onClick={() => setIsChainOpen((prev) => !prev)}
+                                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm hover:border-indigo-200 transition-colors"
+                            >
+                                <span className={`h-2.5 w-2.5 rounded-full ${activeMeta?.color || 'bg-slate-400'}`} />
+                                <span>{activeChain.name}</span>
+                                <ChevronDown className="h-4 w-4 text-slate-400" />
+                            </button>
+                            {isChainOpen && (
+                                <div className="absolute right-0 mt-2 w-44 rounded-2xl border border-slate-100 bg-white p-2 shadow-lg">
+                                    {chainOptions.map((chain) => {
+                                        const meta = chainMeta[chain.id];
+                                        return (
+                                            <button
+                                                key={chain.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    switchChain({ chainId: chain.id as ChainId });
+                                                    setIsChainOpen(false);
+                                                }}
+                                                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                            >
+                                                <span className={`h-2.5 w-2.5 rounded-full ${meta?.color || 'bg-slate-400'}`} />
+                                                <span>{chain.name}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                         <ConnectButton />
                     </div>
                 </div>

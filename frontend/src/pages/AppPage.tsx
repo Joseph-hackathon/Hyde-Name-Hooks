@@ -70,6 +70,24 @@ export default function AppPage() {
         { symbol: 'USDC', address: 'USDC', label: 'USDC' },
     ];
 
+    const getRate = (fromToken: string, toToken: string) => {
+        if (fromToken === toToken) return 1;
+        if (fromToken === 'ETH' && toToken === 'USDC') return 3200;
+        if (fromToken === 'USDC' && toToken === 'ETH') return 1 / 3200;
+        return null;
+    };
+
+    const receiveAmount = useMemo(() => {
+        const amount = Number(payAmount);
+        if (!payAmount || Number.isNaN(amount)) return '';
+        const rate = getRate(payToken, receiveToken);
+        if (!rate) return '';
+        const value = amount * rate;
+        return receiveToken === 'USDC'
+            ? value.toFixed(2)
+            : value.toFixed(6);
+    }, [payAmount, payToken, receiveToken]);
+
     const handleSwitch = () => {
         setPayToken(receiveToken);
         setReceiveToken(payToken);
@@ -220,6 +238,7 @@ export default function AppPage() {
                             <div className="flex justify-between items-center">
                                 <input
                                     type="text"
+                                    value={receiveAmount}
                                     placeholder="Quoted on Uniswap"
                                     className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full"
                                     disabled
