@@ -14,13 +14,17 @@
   }
 
   html {
-    font-family: var(--font-sans);
+    font-family: var(--font-sans) !important;
   }
 
   body {
     @apply bg-background text-brand-dark antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: var(--font-sans);
+    font-family: var(--font-sans) !important;
+  }
+
+  #root {
+    font-family: var(--font-sans) !important;
   }
 
   * {
