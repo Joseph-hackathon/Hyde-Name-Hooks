@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = rawBase.startsWith('http://') || rawBase.startsWith('https://')
+  ? rawBase
+  : `https://${rawBase}`;
 
 type ApiSuccess<T> = {
   success: true;
@@ -10,7 +13,9 @@ type ApiError = {
 };
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const normalizedBase = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const response = await fetch(`${normalizedBase}${normalizedPath}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(options?.headers || {}),
