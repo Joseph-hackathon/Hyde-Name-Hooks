@@ -32,6 +32,11 @@ ARC_USDC_TOKEN_ADDRESS=your_arc_testnet_usdc_token_address
 ARC_BLOCKCHAIN=ARC-TESTNET
 ARC_TRANSFER_FEE_LEVEL=MEDIUM
 
+# Stork WebSocket (backend only)
+STORK_WS_URL=wss://api.jp.stork-oracle.network/evm/subscribe
+STORK_WS_TOKEN=your_stork_ws_token
+STORK_WS_ASSETS=ETHUSD,USDCUSD
+
 # Optional: additional chain RPCs for future expansion
 BASE_SEPOLIA_RPC_URL=https://base-sepolia.g.alchemy.com/v2/YOUR_KEY
 UNICHAIN_SEPOLIA_RPC_URL=https://unichain-sepolia.g.alchemy.com/v2/YOUR_KEY

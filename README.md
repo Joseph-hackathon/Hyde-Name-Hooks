@@ -170,6 +170,7 @@ Example:
 - **ENS-based contextual reputation tiers**
 - **Sybil resistance for privacy pools**
 - **Uniswap v4 Hook integration**
+- **Arc USDC settlement layer**
 - **Verifiable on-chain eligibility**
 
 ---
@@ -184,6 +185,7 @@ sequenceDiagram
     participant ENS as ENS Resolver
     participant HydeHook as Hyde Name Hook
     participant Uniswap as Uniswap v4 Pool
+    participant Arc as Arc Settlement Layer
 
     User->>Frontend: Connect wallet + ENS
     Frontend->>ENS: Resolve ENS reputation tier
@@ -196,6 +198,8 @@ sequenceDiagram
     HydeHook-->>Uniswap: Allow swap execution
 
     Uniswap-->>User: Swap completed privately
+    User->>Arc: Post-swap settlement request
+    Arc-->>User: USDC settlement ready
 ```
 
 ---

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useChainId } from 'wagmi';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
 import { CHAINS } from '../config/contracts';
 import { createArcSettlement, getArcSettlementStatus } from '../lib/api';
 import { gsap } from 'gsap';
@@ -43,6 +44,26 @@ export default function AppPage() {
     const [autoCheckCount, setAutoCheckCount] = useState(0);
     const terminalStates = ['COMPLETE', 'FAILED', 'DENIED', 'CANCELLED'];
     const arcExplorerBase = (import.meta.env.VITE_ARC_EXPLORER_BASE || '').trim();
+    const rawApiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const apiBase = rawApiBase.startsWith('http') ? rawApiBase : `https://${rawApiBase}`;
+    const storkStreamUrl = `${apiBase.replace(/\/$/, '')}/api/stork/stream`;
+    const [storkPrices, setStorkPrices] = useState<{
+        ethUsd?: number;
+        usdcUsd?: number;
+        updatedAt?: number;
+    }>({});
+    const [storkError, setStorkError] = useState<string | null>(null);
+    const [storkStatus, setStorkStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
+    const [storkSource, setStorkSource] = useState('Stork WS');
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [helpTopic, setHelpTopic] = useState<'swap-hash' | 'settlement-id' | 'settlement-hash' | null>(null);
+
+    const getStorkBadge = () => {
+        if (storkStatus === 'connected') return { label: 'LIVE', className: 'bg-emerald-100 text-emerald-700' };
+        if (storkStatus === 'connecting') return { label: 'CONNECTING', className: 'bg-amber-100 text-amber-700' };
+        if (storkStatus === 'disconnected') return { label: 'DISCONNECTED', className: 'bg-slate-100 text-slate-500' };
+        return { label: 'ERROR', className: 'bg-red-100 text-red-700' };
+    };
 
     const swapConfig = useMemo(() => {
         if (chainId === CHAINS.sepolia.id) {
@@ -136,8 +157,20 @@ export default function AppPage() {
 
     const getRate = (fromToken: string, toToken: string) => {
         if (fromToken === toToken) return 1;
-        if (fromToken === 'ETH' && toToken === 'USDC') return 3200;
-        if (fromToken === 'USDC' && toToken === 'ETH') return 1 / 3200;
+        if (fromToken === 'ETH' && toToken === 'USDC') {
+            if (storkPrices.ethUsd) {
+                const usdcUsd = storkPrices.usdcUsd || 1;
+                return storkPrices.ethUsd / usdcUsd;
+            }
+            return 3200;
+        }
+        if (fromToken === 'USDC' && toToken === 'ETH') {
+            if (storkPrices.ethUsd) {
+                const usdcUsd = storkPrices.usdcUsd || 1;
+                return usdcUsd / storkPrices.ethUsd;
+            }
+            return 1 / 3200;
+        }
         return null;
     };
 
@@ -263,6 +296,40 @@ export default function AppPage() {
         }
     };
 
+    const openHelp = (topic: 'swap-hash' | 'settlement-id' | 'settlement-hash') => {
+        setHelpTopic(topic);
+        setIsHelpOpen(true);
+    };
+
+    const parseStorkPrice = (raw: string) => {
+        try {
+            const value = BigInt(raw);
+            const base = 10n ** 18n;
+            const whole = value / base;
+            const fraction = value % base;
+            const fractionText = fraction.toString().padStart(18, '0').slice(0, 6);
+            return Number(`${whole.toString()}.${fractionText}`);
+        } catch {
+            return null;
+        }
+    };
+
+    const applyStorkUpdate = (data: any) => {
+        const values = data || {};
+        const eth = values?.ETHUSD?.price;
+        const usdc = values?.USDCUSD?.price;
+        const timestamp = values?.ETHUSD?.timestamp || values?.USDCUSD?.timestamp;
+        const ethUsd = eth ? parseStorkPrice(eth) : null;
+        const usdcUsd = usdc ? parseStorkPrice(usdc) : null;
+        if (!ethUsd && !usdcUsd) return;
+        setStorkPrices((prev) => ({
+            ethUsd: ethUsd ?? prev.ethUsd,
+            usdcUsd: usdcUsd ?? prev.usdcUsd,
+            updatedAt: timestamp ? Math.floor(Number(timestamp) / 1e9) : Math.floor(Date.now() / 1000),
+        }));
+        setStorkSource('Stork WS');
+    };
+
     const getFailureResolution = (reason?: string) => {
         const normalized = (reason || '').toLowerCase();
         if (normalized.includes('insufficient') || normalized.includes('balance') || normalized.includes('fund')) {
@@ -305,7 +372,62 @@ export default function AppPage() {
         return () => clearTimeout(timeout);
     }, [autoCheckEnabled, settlementResult?.circleTransactionId, circleStatus, autoCheckCount]);
 
+    useEffect(() => {
+        setStorkStatus('connecting');
+        setStorkError(null);
+
+        const source = new EventSource(storkStreamUrl);
+
+        const handlePrice = (event: MessageEvent) => {
+            try {
+                const payload = JSON.parse(event.data);
+                applyStorkUpdate(payload?.data || {});
+                setStorkStatus('connected');
+            } catch {
+                setStorkError('Stork 가격 데이터 파싱 실패');
+            }
+        };
+
+        const handleStatus = (event: MessageEvent) => {
+            try {
+                const payload = JSON.parse(event.data);
+                if (payload?.state === 'error') {
+                    setStorkStatus('error');
+                    setStorkError(payload?.message || 'Stork 스트림 오류');
+                    return;
+                }
+                if (payload?.state === 'connected') {
+                    setStorkStatus('connected');
+                    setStorkError(null);
+                    return;
+                }
+                if (payload?.state === 'disconnected') {
+                    setStorkStatus('disconnected');
+                    return;
+                }
+            } catch {
+                setStorkStatus('error');
+                setStorkError('Stork 상태 처리 실패');
+            }
+        };
+
+        source.addEventListener('price', handlePrice as EventListener);
+        source.addEventListener('status', handleStatus as EventListener);
+
+        source.onerror = () => {
+            setStorkStatus('error');
+            setStorkError('Stork 스트림 연결 실패');
+        };
+
+        return () => {
+            source.removeEventListener('price', handlePrice as EventListener);
+            source.removeEventListener('status', handleStatus as EventListener);
+            source.close();
+        };
+    }, [storkStreamUrl]);
+
     return (
+        <>
         <div ref={rootRef} className="ens-page p-6">
             <div className="pointer-events-none absolute inset-0 ens-grid" />
             <div className="pointer-events-none absolute inset-0 ens-noise" />
@@ -465,6 +587,44 @@ export default function AppPage() {
                     <div className="mt-4 text-center text-xs text-slate-500">
                         Powered by Uniswap v4 Hook • ENS Context Gated
                     </div>
+                    <div className="mt-3 rounded-xl border border-slate-100 bg-white/70 px-4 py-3 text-xs text-slate-600">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Activity className="w-4 h-4 text-brand-blue" />
+                                <span>Stork 실시간 가격</span>
+                                <span className={`rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ${getStorkBadge().className}`}>
+                                    {getStorkBadge().label}
+                                </span>
+                            </div>
+                            <span className="font-semibold text-brand-dark">
+                                {storkPrices.ethUsd ? `ETH ${storkPrices.ethUsd.toFixed(2)} USD` : '가격 대기'}
+                            </span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                            <span>USDC</span>
+                            <span className="font-semibold text-brand-dark">
+                                {storkPrices.usdcUsd ? `${storkPrices.usdcUsd.toFixed(4)} USD` : '가격 대기'}
+                            </span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between text-[0.65rem] text-slate-400">
+                            <span>소스</span>
+                            <span>{storkSource}</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between text-[0.65rem] text-slate-400">
+                            <span>상태</span>
+                            <span>{storkStatus}</span>
+                        </div>
+                        <div className="mt-1 text-[0.65rem] text-slate-400">
+                            {storkPrices.updatedAt
+                                ? `마지막 갱신: ${new Date(storkPrices.updatedAt * 1000).toLocaleTimeString()}`
+                                : '업데이트 대기'}
+                        </div>
+                        {storkError && (
+                            <div className="mt-1 text-[0.65rem] text-amber-700">
+                                {storkError}
+                            </div>
+                        )}
+                    </div>
 
                     <div className="mt-6 rounded-2xl border border-slate-100 bg-white/70 p-5">
                         <div className="flex items-start justify-between gap-4">
@@ -478,12 +638,27 @@ export default function AppPage() {
                                 <p className="text-xs text-slate-600 mt-2">
                                     Swap executes on Uniswap, then Arc finalizes the result into payment-ready USDC.
                                 </p>
+                                <div className="mt-3 text-[0.7rem] text-slate-500 space-y-1">
+                                    <div>• 목적: 스왑 결과를 USDC로 정산해 결제 가능한 잔액을 만듭니다.</div>
+                                    <div>• 이유: 프라이버시 스왑을 실사용 가능한 스테이블 자산으로 마무리합니다.</div>
+                                    <div>• 해시: 스왑 트랜잭션과 정산을 연결하는 추적용 값입니다.</div>
+                                    <div>• ID: 정산 요청을 식별하는 내부 레퍼런스입니다.</div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="mt-4 space-y-3">
                             <div className="flex flex-col gap-2">
-                                <label className="text-xs text-slate-500">Swap tx hash (optional)</label>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs text-slate-500">Swap tx hash (optional)</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => openHelp('swap-hash')}
+                                        className="text-[0.65rem] font-semibold text-brand-blue underline"
+                                    >
+                                        도움말
+                                    </button>
+                                </div>
                                 <input
                                     type="text"
                                     value={swapTxHash}
@@ -516,8 +691,14 @@ export default function AppPage() {
 
                         {settlementStatus === 'success' && settlementResult && (
                             <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                                Settlement ready • {settlementResult.usdcAmount} {settlementResult.settlementAsset} •
-                                ID {settlementResult.settlementId}
+                                Settlement ready • {settlementResult.usdcAmount} {settlementResult.settlementAsset} •{' '}
+                                <button
+                                    type="button"
+                                    onClick={() => openHelp('settlement-id')}
+                                    className="font-semibold underline"
+                                >
+                                    ID {settlementResult.settlementId}
+                                </button>
                                 {settlementResult.circleTransactionState && (
                                     <span className="ml-2 text-[0.65rem] uppercase tracking-[0.2em] text-emerald-600">
                                         {settlementResult.circleTransactionState}
@@ -553,20 +734,29 @@ export default function AppPage() {
                                 {circleStatus?.txHash && (
                                     <div className="mt-2 flex items-center justify-between gap-3">
                                         <span>Tx hash</span>
-                                        {arcExplorerBase ? (
-                                            <a
-                                                href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="font-mono text-[0.65rem] text-brand-dark underline"
+                                        <div className="flex items-center gap-2">
+                                            {arcExplorerBase ? (
+                                                <a
+                                                    href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="font-mono text-[0.65rem] text-brand-dark underline"
+                                                >
+                                                    {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
+                                                </a>
+                                            ) : (
+                                                <span className="font-mono text-[0.65rem] text-brand-dark">
+                                                    {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
+                                                </span>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => openHelp('settlement-hash')}
+                                                className="text-[0.65rem] font-semibold text-brand-blue underline"
                                             >
-                                                {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
-                                            </a>
-                                        ) : (
-                                            <span className="font-mono text-[0.65rem] text-brand-dark">
-                                                {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
-                                            </span>
-                                        )}
+                                                도움말
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                                 {circleStatus?.errorReason && (
@@ -737,5 +927,75 @@ export default function AppPage() {
             </motion.div>
             </div>
         </div>
+        <Modal
+            isOpen={isHelpOpen}
+            onClose={() => setIsHelpOpen(false)}
+            title={
+                helpTopic === 'swap-hash'
+                    ? '스왑 해시 도움말'
+                    : helpTopic === 'settlement-hash'
+                        ? '정산 해시 도움말'
+                        : '정산 ID 도움말'
+            }
+        >
+            {helpTopic === 'swap-hash' && (
+                <div className="space-y-3 text-sm text-slate-600">
+                    <p>
+                        스왑 해시는 Uniswap에서 실행된 트랜잭션을 추적하기 위한 값입니다. Arc 정산과 연결해
+                        추후 상태 확인에 사용됩니다.
+                    </p>
+                    <p className="text-xs text-slate-500">
+                        참고: 스왑 실행 후 지갑/익스플로러에서 트랜잭션 해시를 복사해 넣으면 됩니다.
+                    </p>
+                    <a
+                        href="https://developers.circle.com/build-onchain"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-semibold text-brand-blue underline"
+                    >
+                        Arc 정산 개요 문서
+                    </a>
+                </div>
+            )}
+            {helpTopic === 'settlement-hash' && (
+                <div className="space-y-3 text-sm text-slate-600">
+                    <p>
+                        정산 해시는 Arc 체인에 기록된 전송 트랜잭션 해시입니다. 정산 결과를 블록 익스플로러에서
+                        직접 확인할 수 있습니다.
+                    </p>
+                    <p className="text-xs text-slate-500">
+                        Arc Explorer 링크로 연결해 세부 전송 내역을 확인하세요.
+                    </p>
+                    <a
+                        href="https://developers.circle.com/wallets"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-semibold text-brand-blue underline"
+                    >
+                        Circle Wallets 문서
+                    </a>
+                </div>
+            )}
+            {helpTopic === 'settlement-id' && (
+                <div className="space-y-3 text-sm text-slate-600">
+                    <p>
+                        정산 ID는 Arc 정산 요청을 내부적으로 구분하기 위한 레퍼런스입니다. Circle 전송 상태
+                        조회나 로그 추적에 사용됩니다.
+                    </p>
+                    <p className="text-xs text-slate-500">
+                        이 값은 스왑 결과를 USDC로 정산하는 과정을 추적하기 위한 메타 정보입니다.
+                    </p>
+                    <a
+                        href="https://developers.circle.com/wallets"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-semibold text-brand-blue underline"
+                    >
+                        Circle Wallets 문서
+                    </a>
+                </div>
+            )}
+        </Modal>
+        </>
     );
 }

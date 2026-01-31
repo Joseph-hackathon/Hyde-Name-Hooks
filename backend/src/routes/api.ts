@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { ENSContextService } from '../services/ensContextService';
 import { ContractService } from '../services/contractService';
 import { ArcSettlementService } from '../services/arcSettlementService';
+import WebSocket from 'ws';
 
 const router = Router();
 
@@ -306,6 +307,84 @@ router.get('/arc/settlement/:transactionId', async (req: Request, res: Response)
             error: error.message || 'Failed to fetch Arc settlement status',
         });
     }
+});
+
+/**
+ * GET /api/stork/stream
+ * Streams Stork prices over SSE using a backend WS connection.
+ */
+router.get('/stork/stream', (req: Request, res: Response) => {
+    const token = process.env.STORK_WS_TOKEN;
+    if (!token) {
+        res.status(503).json({ error: 'STORK_WS_TOKEN is not configured' });
+        return;
+    }
+
+    const wsUrl = process.env.STORK_WS_URL || 'wss://api.jp.stork-oracle.network/evm/subscribe';
+    const assets = (process.env.STORK_WS_ASSETS || 'ETHUSD,USDCUSD')
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    const sendEvent = (event: string, data: unknown) => {
+        res.write(`event: ${event}\n`);
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    const ws = new WebSocket(wsUrl, {
+        headers: {
+            Authorization: `Basic ${token}`,
+        },
+    });
+
+    const close = () => {
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+            ws.close();
+        }
+        res.end();
+    };
+
+    ws.on('open', () => {
+        ws.send(JSON.stringify({ type: 'subscribe', data: assets }));
+        sendEvent('status', { state: 'connected' });
+    });
+
+    ws.on('message', (data) => {
+        try {
+            const payload = JSON.parse(data.toString());
+            if (payload?.type !== 'oracle_prices' || !payload?.data) return;
+            const priceData = payload.data;
+            const eth = priceData.ETHUSD;
+            const usdc = priceData.USDCUSD;
+            if (!eth && !usdc) return;
+            sendEvent('price', {
+                data: {
+                    ...(eth ? { ETHUSD: eth } : {}),
+                    ...(usdc ? { USDCUSD: usdc } : {}),
+                },
+            });
+        } catch {
+            // ignore malformed payloads
+        }
+    });
+
+    ws.on('error', (error) => {
+        sendEvent('status', { state: 'error', message: error.message });
+    });
+
+    ws.on('close', () => {
+        sendEvent('status', { state: 'disconnected' });
+        res.end();
+    });
+
+    req.on('close', () => {
+        close();
+    });
 });
 
 export default router;

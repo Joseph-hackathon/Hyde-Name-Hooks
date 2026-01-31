@@ -62,6 +62,7 @@ app.get('/', (req, res) => {
             checkAccess: 'GET /api/check-access/:address/:minTier',
             arcSettlement: 'POST /api/arc/settlement',
             arcSettlementStatus: 'GET /api/arc/settlement/:transactionId',
+            storkStream: 'GET /api/stork/stream',
         },
     });
 });
@@ -88,6 +89,7 @@ app.listen(PORT, () => {
     console.log(`   GET  /api/check-access/:address/:minTier`);
     console.log(`   POST /api/arc/settlement`);
     console.log(`   GET  /api/arc/settlement/:transactionId`);
+    console.log(`   GET  /api/stork/stream`);
     console.log('\n✨ Ready to serve!\n');
 });
 

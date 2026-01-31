@@ -5,6 +5,9 @@ import { ArrowRight, Globe, Shield, Sparkles, Users, Wallet } from 'lucide-react
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Button from '../components/ui/Button';
+import projectEns from '../assets/project-ens.svg';
+import projectHook from '../assets/project-hook.svg';
+import projectArc from '../assets/project-arc.svg';
 
 export default function LandingPage() {
     const rootRef = useRef<HTMLDivElement>(null);
@@ -369,6 +372,22 @@ export default function LandingPage() {
                             Uniswap v4 swaps through hooks. The result: privacy-preserving tiers for traders and safer
                             orderflow for LPs.
                         </p>
+                        <div className="grid gap-4 sm:grid-cols-3">
+                            {[
+                                { src: projectEns, label: 'ENS context' },
+                                { src: projectHook, label: 'Hooked swap' },
+                                { src: projectArc, label: 'Arc settlement' },
+                            ].map((item) => (
+                                <div key={item.label} className="gsap-card gsap-card-item bg-white/70 rounded-3xl border border-slate-100 p-4 shadow-sm">
+                                    <img
+                                        src={item.src}
+                                        alt={item.label}
+                                        className="w-full h-32 object-cover rounded-2xl border border-slate-100"
+                                    />
+                                    <p className="mt-3 text-xs uppercase tracking-[0.25em] text-slate-400">{item.label}</p>
+                                </div>
+                            ))}
+                        </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="gsap-card gsap-card-item ens-glass rounded-3xl p-5 border border-slate-100">
                                 <div className="flex items-center gap-3 text-sm font-semibold text-brand-dark">
