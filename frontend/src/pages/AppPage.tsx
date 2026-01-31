@@ -161,16 +161,17 @@ export default function AppPage() {
     const rawUsdcAddress = swapConfig?.tokens.find((token) => token.symbol === 'USDC')?.address;
     const usdcAddress = rawUsdcAddress && isAddress(rawUsdcAddress) ? rawUsdcAddress : undefined;
     const activeChainId = chainId || CHAINS.sepolia.id;
+    const walletAddress = address && isAddress(address) ? address : undefined;
     const { data: ethBalanceData } = useBalance({
-        address,
+        address: walletAddress,
         chainId: activeChainId,
-        enabled: Boolean(address),
+        enabled: Boolean(walletAddress),
     });
     const { data: usdcBalanceData } = useBalance({
-        address,
+        address: walletAddress,
         chainId: activeChainId,
         token: usdcAddress,
-        enabled: Boolean(address && usdcAddress),
+        enabled: Boolean(walletAddress && usdcAddress),
     });
     const formatTokenBalance = (value: typeof ethBalanceData, decimals: number, symbol: string) => {
         if (!value) return `0.0 ${symbol}`;
