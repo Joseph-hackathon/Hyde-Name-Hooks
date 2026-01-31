@@ -41,11 +41,6 @@ export default function VerifyPage() {
     const explorerBase = chainConfig.blockExplorer;
     const claimStorageKey = address ? `hyde_claim_result_${address.toLowerCase()}` : null;
     const isClaimed = Boolean(tierName || claimResult);
-    const tabs = [
-        { label: 'Swap', to: '/app' },
-        { label: 'Verify', to: '/verify' },
-        { label: 'Pools', to: '/pools' },
-    ];
 
     useEffect(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -209,15 +204,6 @@ export default function VerifyPage() {
                 <div className="mb-8 flex flex-wrap items-center gap-3">
                     <div className="ens-chip">
                         {ensName || 'Unnamed'} {tierName ? `• ${tierName}` : ''}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {tabs.map((tab) => (
-                            <Link key={tab.to} to={tab.to} className="inline-flex">
-                                <Button variant={tab.to === '/verify' ? 'primary' : 'ghost'} size="sm">
-                                    {tab.label}
-                                </Button>
-                            </Link>
-                        ))}
                     </div>
                 </div>
 

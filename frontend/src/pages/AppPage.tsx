@@ -148,11 +148,6 @@ export default function AppPage() {
 
     const tier = tierName || (contextScore && contextScore > 900 ? 'Elite' :
         contextScore && contextScore > 800 ? 'Trusted' : 'Standard');
-    const tabs = [
-        { label: 'Swap', to: '/app' },
-        { label: 'Verify', to: '/verify' },
-        { label: 'Pools', to: '/pools' },
-    ];
 
     const tokens = swapConfig?.tokens ?? [
         { symbol: 'ETH', address: 'ETH', label: 'ETH' },
@@ -202,21 +197,17 @@ export default function AppPage() {
     const getBalanceLabel = (token: string) =>
         token === 'USDC' ? balanceByToken.USDC : balanceByToken.ETH;
 
+    const isStorkReady = storkStatus === 'connected' && Boolean(storkPrices.ethUsd);
     const getRate = (fromToken: string, toToken: string) => {
         if (fromToken === toToken) return 1;
+        if (!isStorkReady) return null;
         if (fromToken === 'ETH' && toToken === 'USDC') {
-            if (storkPrices.ethUsd) {
-                const usdcUsd = storkPrices.usdcUsd || 1;
-                return storkPrices.ethUsd / usdcUsd;
-            }
-            return 3200;
+            const usdcUsd = storkPrices.usdcUsd || 1;
+            return storkPrices.ethUsd! / usdcUsd;
         }
         if (fromToken === 'USDC' && toToken === 'ETH') {
-            if (storkPrices.ethUsd) {
-                const usdcUsd = storkPrices.usdcUsd || 1;
-                return usdcUsd / storkPrices.ethUsd;
-            }
-            return 1 / 3200;
+            const usdcUsd = storkPrices.usdcUsd || 1;
+            return usdcUsd / storkPrices.ethUsd!;
         }
         return null;
     };
@@ -231,6 +222,7 @@ export default function AppPage() {
             ? value.toFixed(2)
             : value.toFixed(6);
     }, [payAmount, payToken, receiveToken]);
+    const receivePlaceholder = isStorkReady ? 'Quoted on Uniswap' : 'Waiting for live price';
 
     const handleSwitch = () => {
         setPayToken(receiveToken);
@@ -503,20 +495,11 @@ export default function AppPage() {
                     </div>
                 </header>
 
-                <div className="max-w-6xl mx-auto mb-8 flex flex-wrap items-center gap-3">
-                    <div className="ens-chip">
-                        {ensName || 'Unnamed'} {tier ? `• ${tier}` : ''}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {tabs.map((tab) => (
-                            <Link key={tab.to} to={tab.to} className="inline-flex">
-                                <Button variant={tab.to === '/app' ? 'primary' : 'ghost'} size="sm">
-                                    {tab.label}
-                                </Button>
-                            </Link>
-                        ))}
-                    </div>
+            <div className="max-w-6xl mx-auto mb-8 flex flex-wrap items-center gap-3">
+                <div className="ens-chip">
+                    {ensName || 'Unnamed'} {tier ? `• ${tier}` : ''}
                 </div>
+            </div>
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
 
@@ -584,7 +567,7 @@ export default function AppPage() {
                                 <input
                                     type="text"
                                     value={receiveAmount}
-                                    placeholder="Quoted on Uniswap"
+                                    placeholder={receivePlaceholder}
                                     className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full"
                                     disabled
                                 />

@@ -86,9 +86,6 @@ export default function RootLayout() {
                         <Link to="/pools" className="text-sm font-semibold text-slate-600 hover:text-brand-blue transition-colors">
                             Pools
                         </Link>
-                        <a href="#" className="text-sm font-semibold text-slate-600 hover:text-brand-blue transition-colors">
-                            Docs
-                        </a>
                     </nav>
 
                     {/* Action Buttons */}

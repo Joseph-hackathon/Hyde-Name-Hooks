@@ -77,11 +77,6 @@ export default function PoolsPage() {
     const { contextScore, address, isConnected, ensName, tierName } = useWallet();
     const [filter, setFilter] = React.useState<'all' | 'privacy' | 'open'>('all');
     const [accessMap, setAccessMap] = React.useState<Record<string, boolean>>({});
-    const tabs = [
-        { label: 'Swap', to: '/app' },
-        { label: 'Verify', to: '/verify' },
-        { label: 'Pools', to: '/pools' },
-    ];
 
     const filteredPools = MOCK_POOLS.filter(pool => {
         if (filter === 'privacy') return pool.isGated;
@@ -173,15 +168,6 @@ export default function PoolsPage() {
                 <div className="mb-8 flex flex-wrap items-center gap-3">
                     <div className="ens-chip">
                         {ensName || 'Unnamed'} {tierName ? `• ${tierName}` : ''}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {tabs.map((tab) => (
-                            <Link key={tab.to} to={tab.to} className="inline-flex">
-                                <Button variant={tab.to === '/pools' ? 'primary' : 'ghost'} size="sm">
-                                    {tab.label}
-                                </Button>
-                            </Link>
-                        ))}
                     </div>
                 </div>
 
