@@ -15,6 +15,23 @@ SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
 REGISTRY_CONTRACT_ADDRESS=0x...
 HOOK_CONTRACT_ADDRESS=0x...
 
+# Arc settlement (testnet)
+ARC_NETWORK=arc-testnet
+ARC_SETTLEMENT_MODE=mock
+CIRCLE_API_BASE=https://api.circle.com
+CIRCLE_API_KEY=your_circle_test_api_key
+CIRCLE_WALLET_ID=your_circle_wallet_id
+CIRCLE_ENTITY_SECRET_CIPHERTEXT=your_entity_secret_ciphertext
+CIRCLE_ENTITY_SECRET=your_entity_secret
+CIRCLE_RECOVERY_FILE_PATH=./circle-recovery.json
+CIRCLE_WALLET_SET_NAME=Hyde Arc WalletSet
+CIRCLE_WALLET_ACCOUNT_TYPE=EOA
+CIRCLE_WALLET_BLOCKCHAINS=ARC-TESTNET
+CIRCLE_WALLET_COUNT=1
+ARC_USDC_TOKEN_ADDRESS=your_arc_testnet_usdc_token_address
+ARC_BLOCKCHAIN=ARC-TESTNET
+ARC_TRANSFER_FEE_LEVEL=MEDIUM
+
 # Optional: additional chain RPCs for future expansion
 BASE_SEPOLIA_RPC_URL=https://base-sepolia.g.alchemy.com/v2/YOUR_KEY
 UNICHAIN_SEPOLIA_RPC_URL=https://unichain-sepolia.g.alchemy.com/v2/YOUR_KEY
@@ -23,6 +40,7 @@ UNICHAIN_SEPOLIA_RPC_URL=https://unichain-sepolia.g.alchemy.com/v2/YOUR_KEY
 ## Frontend (Vercel)
 ```
 VITE_API_URL=https://your-railway-backend.up.railway.app
+VITE_ARC_EXPLORER_BASE=https://testnet.arcscan.app
 ```
 
 ## Chain registry references

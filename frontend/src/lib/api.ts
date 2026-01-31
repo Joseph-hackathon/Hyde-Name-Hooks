@@ -89,3 +89,43 @@ export async function getEnsName(address: string) {
     ensName: string | null;
   }>(`/api/ens-name/${address}`);
 }
+
+export async function createArcSettlement(payload: {
+  userAddress: string;
+  swapTxHash?: string;
+  inputToken: string;
+  outputToken: string;
+  inputAmount: string;
+  outputAmount: string;
+  sourceChainId: number;
+}) {
+  return request<{
+    settlementId: string;
+    network: string;
+    usdcAmount: string;
+    status: 'ready' | 'submitted';
+    settlementAsset: 'USDC';
+    createdAt: string;
+    metadata: {
+      swapTxHash?: string;
+      sourceChainId: number;
+      inputToken: string;
+      outputToken: string;
+      inputAmount: string;
+      outputAmount: string;
+    };
+  }>('/api/arc/settlement', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getArcSettlementStatus(transactionId: string) {
+  return request<{
+    id: string;
+    state: string;
+    txHash?: string;
+    updateDate?: string;
+    errorReason?: string;
+  }>(`/api/arc/settlement/${transactionId}`);
+}

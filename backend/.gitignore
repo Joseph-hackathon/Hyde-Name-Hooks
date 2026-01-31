@@ -10,3 +10,7 @@ dist/
 # Logs
 *.log
 npm-debug.log*
+
+# Circle recovery artifacts
+recovery_file_*.dat
+circle-recovery.json

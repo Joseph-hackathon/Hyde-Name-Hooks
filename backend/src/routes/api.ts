@@ -1,11 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { ENSContextService } from '../services/ensContextService';
 import { ContractService } from '../services/contractService';
+import { ArcSettlementService } from '../services/arcSettlementService';
 
 const router = Router();
 
 let ensService: ENSContextService;
 let contractService: ContractService;
+const arcSettlementService = new ArcSettlementService();
 
 function requireServices(res: Response): boolean {
     if (!ensService || !contractService) {
@@ -238,6 +240,72 @@ router.get('/health', (req: Request, res: Response) => {
         status: 'ok',
         timestamp: new Date().toISOString(),
     });
+});
+
+/**
+ * POST /api/arc/settlement
+ * Post-swap settlement into Arc USDC (testnet).
+ */
+router.post('/arc/settlement', async (req: Request, res: Response) => {
+    try {
+        const {
+            userAddress,
+            swapTxHash,
+            inputToken,
+            outputToken,
+            inputAmount,
+            outputAmount,
+            sourceChainId,
+        } = req.body || {};
+
+        if (!userAddress || !inputToken || !outputToken || !inputAmount || !outputAmount || !sourceChainId) {
+            return res.status(400).json({
+                error: 'Missing required fields: userAddress, inputToken, outputToken, inputAmount, outputAmount, sourceChainId',
+            });
+        }
+
+        const settlement = await arcSettlementService.createSettlement({
+            userAddress,
+            swapTxHash,
+            inputToken,
+            outputToken,
+            inputAmount,
+            outputAmount,
+            sourceChainId: Number(sourceChainId),
+        });
+
+        res.json({
+            success: true,
+            data: settlement,
+        });
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message || 'Failed to create Arc settlement',
+        });
+    }
+});
+
+/**
+ * GET /api/arc/settlement/:transactionId
+ * Retrieve Circle transaction status for Arc settlement.
+ */
+router.get('/arc/settlement/:transactionId', async (req: Request, res: Response) => {
+    try {
+        const { transactionId } = req.params;
+        if (!transactionId) {
+            return res.status(400).json({ error: 'Transaction ID required' });
+        }
+
+        const status = await arcSettlementService.getSettlementStatus(transactionId);
+        res.json({
+            success: true,
+            data: status,
+        });
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message || 'Failed to fetch Arc settlement status',
+        });
+    }
 });
 
 export default router;

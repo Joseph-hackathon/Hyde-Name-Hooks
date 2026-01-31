@@ -60,6 +60,8 @@ app.get('/', (req, res) => {
             contextScore: 'GET /api/context-score/:address',
             tier: 'GET /api/tier/:address',
             checkAccess: 'GET /api/check-access/:address/:minTier',
+            arcSettlement: 'POST /api/arc/settlement',
+            arcSettlementStatus: 'GET /api/arc/settlement/:transactionId',
         },
     });
 });
@@ -84,6 +86,8 @@ app.listen(PORT, () => {
     console.log(`   GET  /api/context-score/:address`);
     console.log(`   GET  /api/tier/:address`);
     console.log(`   GET  /api/check-access/:address/:minTier`);
+    console.log(`   POST /api/arc/settlement`);
+    console.log(`   GET  /api/arc/settlement/:transactionId`);
     console.log('\n✨ Ready to serve!\n');
 });
 

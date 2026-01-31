@@ -6,6 +6,7 @@ import { useChainId } from 'wagmi';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import { CHAINS } from '../config/contracts';
+import { createArcSettlement, getArcSettlementStatus } from '../lib/api';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -18,6 +19,30 @@ export default function AppPage() {
     const [swapMessage, setSwapMessage] = useState<string | null>(null);
     const [payToken, setPayToken] = useState('ETH');
     const [receiveToken, setReceiveToken] = useState('USDC');
+    const [swapTxHash, setSwapTxHash] = useState('');
+    const [settlementStatus, setSettlementStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+    const [settlementError, setSettlementError] = useState<string | null>(null);
+    const [settlementResult, setSettlementResult] = useState<{
+        settlementId: string;
+        network: string;
+        usdcAmount: string;
+        status: 'ready' | 'submitted';
+        settlementAsset: 'USDC';
+        createdAt: string;
+        circleTransactionId?: string;
+        circleTransactionState?: string;
+    } | null>(null);
+    const [circleStatus, setCircleStatus] = useState<{
+        id: string;
+        state: string;
+        txHash?: string;
+        updateDate?: string;
+        errorReason?: string;
+    } | null>(null);
+    const [autoCheckEnabled, setAutoCheckEnabled] = useState(true);
+    const [autoCheckCount, setAutoCheckCount] = useState(0);
+    const terminalStates = ['COMPLETE', 'FAILED', 'DENIED', 'CANCELLED'];
+    const arcExplorerBase = (import.meta.env.VITE_ARC_EXPLORER_BASE || '').trim();
 
     const swapConfig = useMemo(() => {
         if (chainId === CHAINS.sepolia.id) {
@@ -149,6 +174,11 @@ export default function AppPage() {
     const handleSwap = () => {
         setSwapError(null);
         setSwapMessage(null);
+        setSettlementStatus('idle');
+        setSettlementError(null);
+        setSettlementResult(null);
+        setCircleStatus(null);
+        setAutoCheckCount(0);
 
         if (!tierName && !contextScore) {
             setSwapError('Claim your ENS context before swapping.');
@@ -170,6 +200,110 @@ export default function AppPage() {
         window.open(url, '_blank', 'noopener,noreferrer');
         setSwapMessage('Swap opened on Uniswap with Hyde context gating.');
     };
+
+    const handleArcSettlement = async () => {
+        setSettlementError(null);
+        setSettlementStatus('submitting');
+        setSettlementResult(null);
+        setCircleStatus(null);
+        setAutoCheckCount(0);
+
+        if (!address) {
+            setSettlementStatus('error');
+            setSettlementError('Connect your wallet to settle on Arc.');
+            return;
+        }
+        if (!receiveAmount || Number.isNaN(Number(receiveAmount))) {
+            setSettlementStatus('error');
+            setSettlementError('Enter a valid swap amount first.');
+            return;
+        }
+        if (receiveToken !== 'USDC') {
+            setSettlementStatus('error');
+            setSettlementError('Arc settlement requires USDC output.');
+            return;
+        }
+
+        try {
+            const result = await createArcSettlement({
+                userAddress: address,
+                swapTxHash: swapTxHash.trim() || undefined,
+                inputToken: payToken,
+                outputToken: receiveToken,
+                inputAmount: payAmount,
+                outputAmount: receiveAmount,
+                sourceChainId: chainId || CHAINS.sepolia.id,
+            });
+            setSettlementResult(result);
+            if (result.circleTransactionId) {
+                setCircleStatus({
+                    id: result.circleTransactionId,
+                    state: result.circleTransactionState || 'INITIATED',
+                });
+            }
+            setSettlementStatus('success');
+        } catch (error: any) {
+            setSettlementStatus('error');
+            setSettlementError(error?.message || 'Arc settlement failed.');
+        }
+    };
+
+    const handleCheckSettlement = async () => {
+        if (!settlementResult?.circleTransactionId) return;
+        setSettlementError(null);
+        setSettlementStatus('submitting');
+        try {
+            const status = await getArcSettlementStatus(settlementResult.circleTransactionId);
+            setCircleStatus(status);
+            setAutoCheckCount((count) => count + 1);
+            setSettlementStatus('success');
+        } catch (error: any) {
+            setSettlementStatus('error');
+            setSettlementError(error?.message || 'Failed to fetch settlement status.');
+        }
+    };
+
+    const getFailureResolution = (reason?: string) => {
+        const normalized = (reason || '').toLowerCase();
+        if (normalized.includes('insufficient') || normalized.includes('balance') || normalized.includes('fund')) {
+            return {
+                title: '잔액 부족',
+                detail: 'Arc 지갑의 USDC 또는 가스 잔액을 확인하세요.',
+                actionLabel: '재시도',
+                action: 'retry' as const,
+            };
+        }
+        if (normalized.includes('denied') || normalized.includes('compliance') || normalized.includes('screen')) {
+            return {
+                title: '규정/정책 거절',
+                detail: '컴플라이언스 이슈가 의심됩니다. 지원팀에 문의하세요.',
+                actionLabel: '문의하기',
+                action: 'support' as const,
+                href: 'mailto:customer-support@circle.com',
+            };
+        }
+        return {
+            title: '일시 오류',
+            detail: '네트워크 지연 또는 처리 실패입니다. 잠시 후 재시도하세요.',
+            actionLabel: '재시도',
+            action: 'retry' as const,
+        };
+    };
+
+    useEffect(() => {
+        if (!autoCheckEnabled) return;
+        if (!settlementResult?.circleTransactionId) return;
+        if (!circleStatus) return;
+
+        if (terminalStates.includes(circleStatus.state)) return;
+        if (autoCheckCount >= 12) return;
+
+        const timeout = setTimeout(() => {
+            handleCheckSettlement();
+        }, 5000);
+
+        return () => clearTimeout(timeout);
+    }, [autoCheckEnabled, settlementResult?.circleTransactionId, circleStatus, autoCheckCount]);
 
     return (
         <div ref={rootRef} className="ens-page p-6">
@@ -331,6 +465,180 @@ export default function AppPage() {
                     <div className="mt-4 text-center text-xs text-slate-500">
                         Powered by Uniswap v4 Hook • ENS Context Gated
                     </div>
+
+                    <div className="mt-6 rounded-2xl border border-slate-100 bg-white/70 p-5">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <p className="text-[0.7rem] uppercase tracking-[0.3em] text-slate-400">
+                                    Post-swap settlement
+                                </p>
+                                <h3 className="text-lg font-semibold text-brand-dark mt-2">
+                                    Arc USDC Settlement (Testnet)
+                                </h3>
+                                <p className="text-xs text-slate-600 mt-2">
+                                    Swap executes on Uniswap, then Arc finalizes the result into payment-ready USDC.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 space-y-3">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-xs text-slate-500">Swap tx hash (optional)</label>
+                                <input
+                                    type="text"
+                                    value={swapTxHash}
+                                    onChange={(event) => setSwapTxHash(event.target.value)}
+                                    placeholder="0x..."
+                                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
+                                />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-slate-500">
+                                <span>Arc output</span>
+                                <span className="font-semibold text-brand-dark">
+                                    {receiveToken === 'USDC' && receiveAmount ? `${receiveAmount} USDC` : 'USDC required'}
+                                </span>
+                            </div>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={handleArcSettlement}
+                                disabled={settlementStatus === 'submitting'}
+                            >
+                                {settlementStatus === 'submitting' ? 'Settling...' : 'Settle on Arc'}
+                            </Button>
+                        </div>
+
+                        {settlementStatus === 'error' && settlementError && (
+                            <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+                                {settlementError}
+                            </div>
+                        )}
+
+                        {settlementStatus === 'success' && settlementResult && (
+                            <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                                Settlement ready • {settlementResult.usdcAmount} {settlementResult.settlementAsset} •
+                                ID {settlementResult.settlementId}
+                                {settlementResult.circleTransactionState && (
+                                    <span className="ml-2 text-[0.65rem] uppercase tracking-[0.2em] text-emerald-600">
+                                        {settlementResult.circleTransactionState}
+                                    </span>
+                                )}
+                                {circleStatus?.txHash && arcExplorerBase && (
+                                    <a
+                                        href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="ml-2 text-[0.65rem] font-semibold text-emerald-700 underline"
+                                    >
+                                        Arc Explorer
+                                    </a>
+                                )}
+                            </div>
+                        )}
+
+                        {settlementResult?.circleTransactionId && (
+                            <div className="mt-3 rounded-xl border border-slate-100 bg-white px-3 py-2 text-xs text-slate-600">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span>Circle tx</span>
+                                    <span className="font-mono text-[0.65rem] text-brand-dark">
+                                        {settlementResult.circleTransactionId}
+                                    </span>
+                                </div>
+                                {circleStatus && (
+                                    <div className="mt-2 flex items-center justify-between gap-3">
+                                        <span>Status</span>
+                                        <span className="font-semibold text-brand-dark">{circleStatus.state}</span>
+                                    </div>
+                                )}
+                                {circleStatus?.txHash && (
+                                    <div className="mt-2 flex items-center justify-between gap-3">
+                                        <span>Tx hash</span>
+                                        {arcExplorerBase ? (
+                                            <a
+                                                href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="font-mono text-[0.65rem] text-brand-dark underline"
+                                            >
+                                                {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
+                                            </a>
+                                        ) : (
+                                            <span className="font-mono text-[0.65rem] text-brand-dark">
+                                                {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                                {circleStatus?.errorReason && (
+                                    <div className="mt-2 rounded-lg border border-red-100 bg-red-50 px-2 py-1 text-[0.65rem] text-red-700">
+                                        실패 사유: {circleStatus.errorReason}
+                                    </div>
+                                )}
+                                <div className="mt-2 flex items-center justify-between gap-3">
+                                    <span>자동 갱신</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAutoCheckEnabled((value) => !value)}
+                                        className={`rounded-full px-3 py-1 text-[0.65rem] font-semibold transition-colors ${autoCheckEnabled
+                                                ? 'bg-emerald-100 text-emerald-700'
+                                                : 'bg-slate-100 text-slate-500'
+                                            }`}
+                                    >
+                                        {autoCheckEnabled ? 'ON' : 'OFF'}
+                                    </button>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mt-2"
+                                    onClick={handleCheckSettlement}
+                                    disabled={settlementStatus === 'submitting'}
+                                >
+                                    상태 갱신
+                                </Button>
+                                {circleStatus && terminalStates.includes(circleStatus.state) && (
+                                    <div className="mt-2 text-[0.65rem] text-slate-500">
+                                        {circleStatus.state === 'COMPLETE'
+                                            ? '정산 완료: USDC가 Arc 지갑에 반영되었습니다.'
+                                            : '정산 실패: 상태를 확인하고 재시도하세요.'}
+                                    </div>
+                                )}
+                                {circleStatus &&
+                                    terminalStates.includes(circleStatus.state) &&
+                                    circleStatus.state !== 'COMPLETE' && (
+                                        <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem] text-slate-600">
+                                            {(() => {
+                                                const resolution = getFailureResolution(circleStatus.errorReason);
+                                                return (
+                                                    <>
+                                                        <div className="font-semibold text-brand-dark">{resolution.title}</div>
+                                                        <div className="mt-1">{resolution.detail}</div>
+                                                        <div className="mt-2">
+                                                            {resolution.action === 'support' && resolution.href ? (
+                                                                <a
+                                                                    href={resolution.href}
+                                                                    className="font-semibold text-brand-blue underline"
+                                                                >
+                                                                    {resolution.actionLabel}
+                                                                </a>
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleArcSettlement}
+                                                                    className="font-semibold text-brand-blue underline"
+                                                                >
+                                                                    {resolution.actionLabel}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
+                                        </div>
+                                    )}
+                            </div>
+                        )}
+                    </div>
                 </motion.div>
 
                 {/* Sidebar Info */}
@@ -413,6 +721,7 @@ export default function AppPage() {
                             <li>2. Tier registered onchain in the registry contract.</li>
                             <li>3. Hook checks tier + cooldown before swap execution.</li>
                             <li>4. Swap routes through existing pools with privacy gates.</li>
+                            <li>5. Arc settles swap output into USDC for payment-ready balance.</li>
                         </ul>
                     </div>
                     <div className="bg-white rounded-2xl p-5 border border-slate-100">

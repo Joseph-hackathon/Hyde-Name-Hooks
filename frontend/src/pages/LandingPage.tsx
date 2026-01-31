@@ -280,7 +280,7 @@ export default function LandingPage() {
                         </div>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-4">
+                    <div className="grid gap-6 lg:grid-cols-5">
                         {[
                             {
                                 step: '01',
@@ -305,6 +305,12 @@ export default function LandingPage() {
                                 title: 'Swap',
                                 body: 'Uniswap v4 Hook enforces cooldown and tier gating at execution.',
                                 accent: 'bg-emerald-50 text-emerald-600'
+                            },
+                            {
+                                step: '05',
+                                title: 'Settle',
+                                body: 'Arc finalizes swap output into USDC for payment-ready settlement.',
+                                accent: 'bg-slate-50 text-slate-600'
                             }
                         ].map((item) => (
                             <div key={item.step} className="gsap-card gsap-card-item bg-white/70 rounded-3xl border border-slate-100 p-6">
