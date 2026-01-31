@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { ENSContextService } from '../services/ensContextService';
 import { ContractService } from '../services/contractService';
 import { ArcSettlementService } from '../services/arcSettlementService';
-import WebSocket from 'ws';
+import WebSocket, { RawData } from 'ws';
 
 const router = Router();
 
@@ -354,7 +354,7 @@ router.get('/stork/stream', (req: Request, res: Response) => {
         sendEvent('status', { state: 'connected' });
     });
 
-    ws.on('message', (data) => {
+    ws.on('message', (data: RawData) => {
         try {
             const payload = JSON.parse(data.toString());
             if (payload?.type !== 'oracle_prices' || !payload?.data) return;
@@ -373,7 +373,7 @@ router.get('/stork/stream', (req: Request, res: Response) => {
         }
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', (error: Error) => {
         sendEvent('status', { state: 'error', message: error.message });
     });
 
