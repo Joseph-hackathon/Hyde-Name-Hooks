@@ -10,7 +10,7 @@ import projectHook from '../assets/project-hook.svg';
 import projectArc from '../assets/project-arc.svg';
 import logoEns from '../assets/logo-ens.svg';
 import logoUni from '../assets/logo-uniswap.svg';
-import logoArc from '../assets/logo-arc.svg';
+import logoArc from '../assets/logo-arc.png';
 
 export default function LandingPage() {
     const rootRef = useRef<HTMLDivElement>(null);
@@ -483,7 +483,6 @@ export default function LandingPage() {
                                             alt={item.label}
                                             className="h-8 w-auto max-w-[120px] object-contain"
                                         />
-                                        <span className="text-xs font-semibold text-slate-600">{item.label}</span>
                                     </div>
                                 ))}
                             </div>
