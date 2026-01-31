@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Repeat, Activity, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useChainId } from 'wagmi';
+import { useBalance, useChainId } from 'wagmi';
+import { formatUnits } from 'viem';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -13,7 +14,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 export default function AppPage() {
     const rootRef = useRef<HTMLDivElement>(null);
-    const { isConnected, ensName, contextScore, balance, address, tierName } = useWallet();
+    const { isConnected, ensName, contextScore, address, tierName } = useWallet();
     const chainId = useChainId();
     const [payAmount, setPayAmount] = useState('');
     const [swapError, setSwapError] = useState<string | null>(null);
@@ -157,6 +158,32 @@ export default function AppPage() {
         { symbol: 'ETH', address: 'ETH', label: 'ETH' },
         { symbol: 'USDC', address: 'USDC', label: 'USDC' },
     ];
+    const usdcAddress = swapConfig?.tokens.find((token) => token.symbol === 'USDC')?.address as
+        | `0x${string}`
+        | undefined;
+    const activeChainId = chainId || CHAINS.sepolia.id;
+    const { data: ethBalanceData } = useBalance({
+        address,
+        chainId: activeChainId,
+        enabled: Boolean(address),
+    });
+    const { data: usdcBalanceData } = useBalance({
+        address,
+        chainId: activeChainId,
+        token: usdcAddress,
+        enabled: Boolean(address && usdcAddress),
+    });
+    const formatTokenBalance = (value: typeof ethBalanceData, decimals: number, symbol: string) => {
+        if (!value) return `0.0 ${symbol}`;
+        const parsed = parseFloat(formatUnits(value.value, value.decimals));
+        return `${parsed.toFixed(decimals)} ${symbol}`;
+    };
+    const balanceByToken = {
+        ETH: formatTokenBalance(ethBalanceData, 4, 'ETH'),
+        USDC: formatTokenBalance(usdcBalanceData, 2, 'USDC'),
+    };
+    const getBalanceLabel = (token: string) =>
+        token === 'USDC' ? balanceByToken.USDC : balanceByToken.ETH;
 
     const getRate = (fromToken: string, toToken: string) => {
         if (fromToken === toToken) return 1;
@@ -456,9 +483,6 @@ export default function AppPage() {
                                 {ensName} {contextScore && `(${contextScore})`}
                             </div>
                         )}
-                        <div className="ens-chip bg-brand-dark text-white border-brand-dark">
-                            {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
-                        </div>
                     </div>
                 </header>
 
@@ -494,7 +518,7 @@ export default function AppPage() {
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 hover:border-indigo-200 transition-colors">
                             <div className="flex justify-between mb-2">
                                 <span className="text-slate-500 text-sm font-bold">Pay</span>
-                                <span className="text-brand-dark font-bold">Balance: {balance || '0.0'}</span>
+                                <span className="text-brand-dark font-bold">Balance: {getBalanceLabel(payToken)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <input
@@ -537,7 +561,7 @@ export default function AppPage() {
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 hover:border-indigo-200 transition-colors">
                             <div className="flex justify-between mb-2">
                                 <span className="text-slate-500 text-sm font-bold">Receive</span>
-                                <span className="text-brand-dark font-bold">Balance: 0.0</span>
+                                <span className="text-brand-dark font-bold">Balance: {getBalanceLabel(receiveToken)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <input
