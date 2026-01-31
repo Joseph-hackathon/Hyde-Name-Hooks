@@ -430,61 +430,65 @@ export default function LandingPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-8 border border-slate-100 shadow-xl space-y-5">
-                        <div>
-                            <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Architecture</p>
-                            <h3 className="text-2xl font-bold text-brand-dark mt-2">Signal flow</h3>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="flex items-start gap-3 text-sm text-slate-600">
-                                <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 font-semibold flex items-center justify-center">1</div>
-                                <div>
-                                    <strong className="text-brand-dark">ENS Lookup</strong>
-                                    <div className="text-xs mt-1">Resolve name, verify ownership, and normalize inputs.</div>
-                                </div>
+                    <div className="space-y-4">
+                        <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-8 border border-slate-100 shadow-xl space-y-5">
+                            <div>
+                                <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Architecture</p>
+                                <h3 className="text-2xl font-bold text-brand-dark mt-2">Signal flow</h3>
                             </div>
-                            <div className="flex items-start gap-3 text-sm text-slate-600">
-                                <div className="h-8 w-8 rounded-full bg-indigo-50 text-indigo-600 font-semibold flex items-center justify-center">2</div>
-                                <div>
-                                    <strong className="text-brand-dark">Scoring Engine</strong>
-                                    <div className="text-xs mt-1">Compute on-chain activity, balances, and reputation.</div>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 text-sm text-slate-600">
-                                <div className="h-8 w-8 rounded-full bg-fuchsia-50 text-fuchsia-600 font-semibold flex items-center justify-center">3</div>
-                                <div>
-                                    <strong className="text-brand-dark">Tier Registry</strong>
-                                    <div className="text-xs mt-1">Write only the tier to onchain registry.</div>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 text-sm text-slate-600">
-                                <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 font-semibold flex items-center justify-center">4</div>
-                                <div>
-                                    <strong className="text-brand-dark">Hook Execution</strong>
-                                    <div className="text-xs mt-1">Uniswap v4 Hook gates swaps and enforces cooldown.</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <Wallet className="w-4 h-4 text-brand-blue" />
-                            Portable identity with verifiable privacy.
-                        </div>
-                        <div className="pt-4 border-t border-slate-100">
-                            <p className="text-xs uppercase tracking-[0.3em] text-slate-400 mb-3">Partners</p>
-                            <div className="flex items-center gap-4 flex-wrap">
-                                {[
-                                    { src: logoEns, label: 'ENS' },
-                                    { src: logoUni, label: 'Uniswap' },
-                                    { src: logoArc, label: 'Arc' },
-                                ].map((item) => (
-                                    <div key={item.label} className="flex items-center gap-2">
-                                        <img
-                                            src={item.src}
-                                            alt={item.label}
-                                            className="h-8 w-auto max-w-[120px] object-contain"
-                                        />
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3 text-sm text-slate-600">
+                                    <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 font-semibold flex items-center justify-center">1</div>
+                                    <div>
+                                        <strong className="text-brand-dark">ENS Lookup</strong>
+                                        <div className="text-xs mt-1">Resolve name, verify ownership, and normalize inputs.</div>
                                     </div>
-                                ))}
+                                </div>
+                                <div className="flex items-start gap-3 text-sm text-slate-600">
+                                    <div className="h-8 w-8 rounded-full bg-indigo-50 text-indigo-600 font-semibold flex items-center justify-center">2</div>
+                                    <div>
+                                        <strong className="text-brand-dark">Scoring Engine</strong>
+                                        <div className="text-xs mt-1">Compute on-chain activity, balances, and reputation.</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 text-sm text-slate-600">
+                                    <div className="h-8 w-8 rounded-full bg-fuchsia-50 text-fuchsia-600 font-semibold flex items-center justify-center">3</div>
+                                    <div>
+                                        <strong className="text-brand-dark">Tier Registry</strong>
+                                        <div className="text-xs mt-1">Write only the tier to onchain registry.</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 text-sm text-slate-600">
+                                    <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 font-semibold flex items-center justify-center">4</div>
+                                    <div>
+                                        <strong className="text-brand-dark">Hook Execution</strong>
+                                        <div className="text-xs mt-1">Uniswap v4 Hook gates swaps and enforces cooldown.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                <Wallet className="w-4 h-4 text-brand-blue" />
+                                Portable identity with verifiable privacy.
+                            </div>
+                        </div>
+                        <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-6 border border-slate-100 shadow-xl">
+                            <div className="pt-1 border-t border-slate-100">
+                                <p className="text-xs uppercase tracking-[0.3em] text-slate-400 mb-3">Partners</p>
+                                <div className="flex items-center gap-4 flex-wrap">
+                                    {[
+                                        { src: logoEns, label: 'ENS' },
+                                        { src: logoUni, label: 'Uniswap' },
+                                        { src: logoArc, label: 'Arc' },
+                                    ].map((item) => (
+                                        <div key={item.label} className="flex items-center gap-2">
+                                            <img
+                                                src={item.src}
+                                                alt={item.label}
+                                                className="h-8 w-auto max-w-[120px] object-contain"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>

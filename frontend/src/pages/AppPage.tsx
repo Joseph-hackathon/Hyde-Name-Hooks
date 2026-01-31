@@ -44,8 +44,11 @@ export default function AppPage() {
     const [autoCheckCount, setAutoCheckCount] = useState(0);
     const terminalStates = ['COMPLETE', 'FAILED', 'DENIED', 'CANCELLED'];
     const arcExplorerBase = (import.meta.env.VITE_ARC_EXPLORER_BASE || '').trim();
-    const rawApiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const apiBase = rawApiBase.startsWith('http') ? rawApiBase : `https://${rawApiBase}`;
+    const rawApiBase = import.meta.env.VITE_API_URL;
+    const fallbackBase = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
+    const apiBase = rawApiBase
+        ? (rawApiBase.startsWith('http') ? rawApiBase : `https://${rawApiBase}`)
+        : fallbackBase;
     const storkStreamUrl = `${apiBase.replace(/\/$/, '')}/api/stork/stream`;
     const [storkPrices, setStorkPrices] = useState<{
         ethUsd?: number;
@@ -243,17 +246,17 @@ export default function AppPage() {
 
         if (!address) {
             setSettlementStatus('error');
-            setSettlementError('Connect your wallet to settle on Arc.');
+        setSettlementError('Connect your wallet to settle on Arc.');
             return;
         }
         if (!receiveAmount || Number.isNaN(Number(receiveAmount))) {
             setSettlementStatus('error');
-            setSettlementError('Enter a valid swap amount first.');
+        setSettlementError('Enter a valid swap amount first.');
             return;
         }
         if (receiveToken !== 'USDC') {
             setSettlementStatus('error');
-            setSettlementError('Arc settlement requires USDC output.');
+        setSettlementError('Arc settlement requires USDC output.');
             return;
         }
 
@@ -277,7 +280,7 @@ export default function AppPage() {
             setSettlementStatus('success');
         } catch (error: any) {
             setSettlementStatus('error');
-            setSettlementError(error?.message || 'Arc settlement failed.');
+        setSettlementError(error?.message || 'Arc settlement failed.');
         }
     };
 
@@ -292,7 +295,7 @@ export default function AppPage() {
             setSettlementStatus('success');
         } catch (error: any) {
             setSettlementStatus('error');
-            setSettlementError(error?.message || 'Failed to fetch settlement status.');
+        setSettlementError(error?.message || 'Failed to fetch settlement status.');
         }
     };
 
@@ -334,25 +337,25 @@ export default function AppPage() {
         const normalized = (reason || '').toLowerCase();
         if (normalized.includes('insufficient') || normalized.includes('balance') || normalized.includes('fund')) {
             return {
-                title: '잔액 부족',
-                detail: 'Arc 지갑의 USDC 또는 가스 잔액을 확인하세요.',
-                actionLabel: '재시도',
+                title: 'Insufficient balance',
+                detail: 'Check the Arc wallet USDC or gas balance.',
+                actionLabel: 'Retry',
                 action: 'retry' as const,
             };
         }
         if (normalized.includes('denied') || normalized.includes('compliance') || normalized.includes('screen')) {
             return {
-                title: '규정/정책 거절',
-                detail: '컴플라이언스 이슈가 의심됩니다. 지원팀에 문의하세요.',
-                actionLabel: '문의하기',
+                title: 'Compliance rejection',
+                detail: 'A compliance issue is suspected. Contact support.',
+                actionLabel: 'Contact support',
                 action: 'support' as const,
                 href: 'mailto:customer-support@circle.com',
             };
         }
         return {
-            title: '일시 오류',
-            detail: '네트워크 지연 또는 처리 실패입니다. 잠시 후 재시도하세요.',
-            actionLabel: '재시도',
+            title: 'Temporary error',
+            detail: 'Network delay or processing failure. Please retry shortly.',
+            actionLabel: 'Retry',
             action: 'retry' as const,
         };
     };
@@ -384,7 +387,7 @@ export default function AppPage() {
                 applyStorkUpdate(payload?.data || {});
                 setStorkStatus('connected');
             } catch {
-                setStorkError('Stork 가격 데이터 파싱 실패');
+            setStorkError('Failed to parse Stork price data.');
             }
         };
 
@@ -393,7 +396,7 @@ export default function AppPage() {
                 const payload = JSON.parse(event.data);
                 if (payload?.state === 'error') {
                     setStorkStatus('error');
-                    setStorkError(payload?.message || 'Stork 스트림 오류');
+                    setStorkError(payload?.message || 'Stork stream error.');
                     return;
                 }
                 if (payload?.state === 'connected') {
@@ -407,7 +410,7 @@ export default function AppPage() {
                 }
             } catch {
                 setStorkStatus('error');
-                setStorkError('Stork 상태 처리 실패');
+                setStorkError('Failed to handle Stork status.');
             }
         };
 
@@ -416,7 +419,7 @@ export default function AppPage() {
 
         source.onerror = () => {
             setStorkStatus('error');
-            setStorkError('Stork 스트림 연결 실패');
+            setStorkError('Stork stream connection failed.');
         };
 
         return () => {
@@ -591,33 +594,33 @@ export default function AppPage() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Activity className="w-4 h-4 text-brand-blue" />
-                                <span>Stork 실시간 가격</span>
+                                <span>Stork Live Price</span>
                                 <span className={`rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ${getStorkBadge().className}`}>
                                     {getStorkBadge().label}
                                 </span>
                             </div>
                             <span className="font-semibold text-brand-dark">
-                                {storkPrices.ethUsd ? `ETH ${storkPrices.ethUsd.toFixed(2)} USD` : '가격 대기'}
+                                {storkPrices.ethUsd ? `ETH ${storkPrices.ethUsd.toFixed(2)} USD` : 'Waiting'}
                             </span>
                         </div>
                         <div className="mt-1 flex items-center justify-between">
                             <span>USDC</span>
                             <span className="font-semibold text-brand-dark">
-                                {storkPrices.usdcUsd ? `${storkPrices.usdcUsd.toFixed(4)} USD` : '가격 대기'}
+                                {storkPrices.usdcUsd ? `${storkPrices.usdcUsd.toFixed(4)} USD` : 'Waiting'}
                             </span>
                         </div>
                         <div className="mt-1 flex items-center justify-between text-[0.65rem] text-slate-400">
-                            <span>소스</span>
+                            <span>Source</span>
                             <span>{storkSource}</span>
                         </div>
                         <div className="mt-1 flex items-center justify-between text-[0.65rem] text-slate-400">
-                            <span>상태</span>
+                            <span>Status</span>
                             <span>{storkStatus}</span>
                         </div>
                         <div className="mt-1 text-[0.65rem] text-slate-400">
                             {storkPrices.updatedAt
-                                ? `마지막 갱신: ${new Date(storkPrices.updatedAt * 1000).toLocaleTimeString()}`
-                                : '업데이트 대기'}
+                                ? `Last update: ${new Date(storkPrices.updatedAt * 1000).toLocaleTimeString()}`
+                                : 'Waiting for updates'}
                         </div>
                         {storkError && (
                             <div className="mt-1 text-[0.65rem] text-amber-700">
@@ -639,10 +642,10 @@ export default function AppPage() {
                                     Swap executes on Uniswap, then Arc finalizes the result into payment-ready USDC.
                                 </p>
                                 <div className="mt-3 text-[0.7rem] text-slate-500 space-y-1">
-                                    <div>• 목적: 스왑 결과를 USDC로 정산해 결제 가능한 잔액을 만듭니다.</div>
-                                    <div>• 이유: 프라이버시 스왑을 실사용 가능한 스테이블 자산으로 마무리합니다.</div>
-                                    <div>• 해시: 스왑 트랜잭션과 정산을 연결하는 추적용 값입니다.</div>
-                                    <div>• ID: 정산 요청을 식별하는 내부 레퍼런스입니다.</div>
+                                    <div>• Purpose: settle swap output in USDC for payment-ready balance.</div>
+                                    <div>• Why: turns private swaps into real-world usable stable settlement.</div>
+                                    <div>• Hash: links the swap transaction to settlement tracking.</div>
+                                    <div>• ID: internal reference for the settlement request.</div>
                                 </div>
                             </div>
                         </div>
@@ -656,7 +659,7 @@ export default function AppPage() {
                                         onClick={() => openHelp('swap-hash')}
                                         className="text-[0.65rem] font-semibold text-brand-blue underline"
                                     >
-                                        도움말
+                                        Help
                                     </button>
                                 </div>
                                 <input
@@ -754,18 +757,18 @@ export default function AppPage() {
                                                 onClick={() => openHelp('settlement-hash')}
                                                 className="text-[0.65rem] font-semibold text-brand-blue underline"
                                             >
-                                                도움말
+                                                Help
                                             </button>
                                         </div>
                                     </div>
                                 )}
                                 {circleStatus?.errorReason && (
                                     <div className="mt-2 rounded-lg border border-red-100 bg-red-50 px-2 py-1 text-[0.65rem] text-red-700">
-                                        실패 사유: {circleStatus.errorReason}
+                                        Failure reason: {circleStatus.errorReason}
                                     </div>
                                 )}
                                 <div className="mt-2 flex items-center justify-between gap-3">
-                                    <span>자동 갱신</span>
+                                    <span>Auto refresh</span>
                                     <button
                                         type="button"
                                         onClick={() => setAutoCheckEnabled((value) => !value)}
@@ -784,13 +787,13 @@ export default function AppPage() {
                                     onClick={handleCheckSettlement}
                                     disabled={settlementStatus === 'submitting'}
                                 >
-                                    상태 갱신
+                                    Refresh status
                                 </Button>
                                 {circleStatus && terminalStates.includes(circleStatus.state) && (
                                     <div className="mt-2 text-[0.65rem] text-slate-500">
                                         {circleStatus.state === 'COMPLETE'
-                                            ? '정산 완료: USDC가 Arc 지갑에 반영되었습니다.'
-                                            : '정산 실패: 상태를 확인하고 재시도하세요.'}
+                                            ? 'Settlement complete: USDC is reflected on Arc.'
+                                            : 'Settlement failed: review status and retry.'}
                                     </div>
                                 )}
                                 {circleStatus &&
@@ -932,20 +935,20 @@ export default function AppPage() {
             onClose={() => setIsHelpOpen(false)}
             title={
                 helpTopic === 'swap-hash'
-                    ? '스왑 해시 도움말'
+                    ? 'Swap Hash Help'
                     : helpTopic === 'settlement-hash'
-                        ? '정산 해시 도움말'
-                        : '정산 ID 도움말'
+                        ? 'Settlement Tx Hash Help'
+                        : 'Settlement ID Help'
             }
         >
             {helpTopic === 'swap-hash' && (
                 <div className="space-y-3 text-sm text-slate-600">
                     <p>
-                        스왑 해시는 Uniswap에서 실행된 트랜잭션을 추적하기 위한 값입니다. Arc 정산과 연결해
-                        추후 상태 확인에 사용됩니다.
+                        The swap hash tracks the Uniswap transaction. It links your swap to the Arc settlement
+                        for monitoring and support.
                     </p>
                     <p className="text-xs text-slate-500">
-                        참고: 스왑 실행 후 지갑/익스플로러에서 트랜잭션 해시를 복사해 넣으면 됩니다.
+                        Tip: copy the transaction hash from your wallet or explorer after the swap.
                     </p>
                     <a
                         href="https://developers.circle.com/build-onchain"
@@ -953,18 +956,18 @@ export default function AppPage() {
                         rel="noreferrer"
                         className="text-xs font-semibold text-brand-blue underline"
                     >
-                        Arc 정산 개요 문서
+                        Arc settlement overview
                     </a>
                 </div>
             )}
             {helpTopic === 'settlement-hash' && (
                 <div className="space-y-3 text-sm text-slate-600">
                     <p>
-                        정산 해시는 Arc 체인에 기록된 전송 트랜잭션 해시입니다. 정산 결과를 블록 익스플로러에서
-                        직접 확인할 수 있습니다.
+                        The settlement hash is the Arc on-chain transfer tx hash. Use it to verify the settlement
+                        directly in the Arc explorer.
                     </p>
                     <p className="text-xs text-slate-500">
-                        Arc Explorer 링크로 연결해 세부 전송 내역을 확인하세요.
+                        Follow the Arc Explorer link to inspect details.
                     </p>
                     <a
                         href="https://developers.circle.com/wallets"
@@ -972,18 +975,18 @@ export default function AppPage() {
                         rel="noreferrer"
                         className="text-xs font-semibold text-brand-blue underline"
                     >
-                        Circle Wallets 문서
+                        Circle Wallets docs
                     </a>
                 </div>
             )}
             {helpTopic === 'settlement-id' && (
                 <div className="space-y-3 text-sm text-slate-600">
                     <p>
-                        정산 ID는 Arc 정산 요청을 내부적으로 구분하기 위한 레퍼런스입니다. Circle 전송 상태
-                        조회나 로그 추적에 사용됩니다.
+                        The settlement ID is an internal reference for this Arc settlement request. It helps track
+                        the request across logs and Circle transaction checks.
                     </p>
                     <p className="text-xs text-slate-500">
-                        이 값은 스왑 결과를 USDC로 정산하는 과정을 추적하기 위한 메타 정보입니다.
+                        This is metadata that ties swap output to the settlement flow.
                     </p>
                     <a
                         href="https://developers.circle.com/wallets"
@@ -991,7 +994,7 @@ export default function AppPage() {
                         rel="noreferrer"
                         className="text-xs font-semibold text-brand-blue underline"
                     >
-                        Circle Wallets 문서
+                        Circle Wallets docs
                     </a>
                 </div>
             )}
