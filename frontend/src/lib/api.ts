@@ -106,6 +106,8 @@ export async function createArcSettlement(payload: {
     status: 'ready' | 'submitted';
     settlementAsset: 'USDC';
     createdAt: string;
+    circleTransactionId?: string;
+    circleTransactionState?: string;
     metadata: {
       swapTxHash?: string;
       sourceChainId: number;
