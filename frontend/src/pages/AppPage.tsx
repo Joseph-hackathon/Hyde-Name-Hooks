@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Repeat, Activity, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useBalance, useChainId } from 'wagmi';
-import { formatUnits } from 'viem';
+import { formatUnits, isAddress } from 'viem';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -158,9 +158,8 @@ export default function AppPage() {
         { symbol: 'ETH', address: 'ETH', label: 'ETH' },
         { symbol: 'USDC', address: 'USDC', label: 'USDC' },
     ];
-    const usdcAddress = swapConfig?.tokens.find((token) => token.symbol === 'USDC')?.address as
-        | `0x${string}`
-        | undefined;
+    const rawUsdcAddress = swapConfig?.tokens.find((token) => token.symbol === 'USDC')?.address;
+    const usdcAddress = rawUsdcAddress && isAddress(rawUsdcAddress) ? rawUsdcAddress : undefined;
     const activeChainId = chainId || CHAINS.sepolia.id;
     const { data: ethBalanceData } = useBalance({
         address,
