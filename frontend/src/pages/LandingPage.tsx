@@ -8,6 +8,9 @@ import Button from '../components/ui/Button';
 import projectEns from '../assets/project-ens.svg';
 import projectHook from '../assets/project-hook.svg';
 import projectArc from '../assets/project-arc.svg';
+import logoEns from '../assets/logo-ens.svg';
+import logoUni from '../assets/logo-uniswap.svg';
+import logoArc from '../assets/logo-arc.svg';
 
 export default function LandingPage() {
     const rootRef = useRef<HTMLDivElement>(null);
@@ -465,6 +468,25 @@ export default function LandingPage() {
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                             <Wallet className="w-4 h-4 text-brand-blue" />
                             Portable identity with verifiable privacy.
+                        </div>
+                        <div className="pt-4 border-t border-slate-100">
+                            <p className="text-xs uppercase tracking-[0.3em] text-slate-400 mb-3">Partners</p>
+                            <div className="flex items-center gap-4 flex-wrap">
+                                {[
+                                    { src: logoEns, label: 'ENS' },
+                                    { src: logoUni, label: 'Uniswap' },
+                                    { src: logoArc, label: 'Arc' },
+                                ].map((item) => (
+                                    <div key={item.label} className="flex items-center gap-2">
+                                        <img
+                                            src={item.src}
+                                            alt={item.label}
+                                            className="h-8 w-auto max-w-[120px] object-contain"
+                                        />
+                                        <span className="text-xs font-semibold text-slate-600">{item.label}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
