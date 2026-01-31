@@ -430,7 +430,7 @@ export default function LandingPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="flex h-full flex-col gap-4">
                         <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-8 border border-slate-100 shadow-xl space-y-5">
                             <div>
                                 <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Architecture</p>
@@ -471,24 +471,22 @@ export default function LandingPage() {
                                 Portable identity with verifiable privacy.
                             </div>
                         </div>
-                        <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-6 border border-slate-100 shadow-xl">
-                            <div className="pt-1 border-t border-slate-100">
-                                <p className="text-xs uppercase tracking-[0.3em] text-slate-400 mb-3">Partners</p>
-                                <div className="flex items-center gap-4 flex-wrap">
-                                    {[
-                                        { src: logoEns, label: 'ENS' },
-                                        { src: logoUni, label: 'Uniswap' },
-                                        { src: logoArc, label: 'Arc' },
-                                    ].map((item) => (
-                                        <div key={item.label} className="flex items-center gap-2">
-                                            <img
-                                                src={item.src}
-                                                alt={item.label}
-                                                className="h-8 w-auto max-w-[120px] object-contain"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
+                        <div className="gsap-card gsap-card-item ens-glass rounded-[2.5rem] p-6 border border-slate-100 shadow-xl mt-auto">
+                            <p className="text-xs uppercase tracking-[0.3em] text-slate-400 mb-3">Partners</p>
+                            <div className="flex items-center gap-4 flex-wrap">
+                                {[
+                                    { src: logoEns, label: 'ENS' },
+                                    { src: logoUni, label: 'Uniswap' },
+                                    { src: logoArc, label: 'Arc' },
+                                ].map((item) => (
+                                    <div key={item.label} className="flex items-center gap-2">
+                                        <img
+                                            src={item.src}
+                                            alt={item.label}
+                                            className="h-8 w-auto max-w-[120px] object-contain"
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
