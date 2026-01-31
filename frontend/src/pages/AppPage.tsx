@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Repeat, Activity, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useBalance, useChainId } from 'wagmi';
+import { useBalance, useChainId, useReadContract } from 'wagmi';
 import { formatUnits, isAddress } from 'viem';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
@@ -165,22 +165,39 @@ export default function AppPage() {
     const { data: ethBalanceData } = useBalance({
         address: walletAddress,
         chainId: activeChainId,
-        enabled: Boolean(walletAddress),
+        query: {
+            enabled: Boolean(walletAddress),
+        },
     });
-    const { data: usdcBalanceData } = useBalance({
-        address: walletAddress,
+    const usdcBalanceResult = useReadContract({
+        address: usdcAddress,
+        abi: [
+            {
+                type: 'function',
+                name: 'balanceOf',
+                stateMutability: 'view',
+                inputs: [{ name: 'account', type: 'address' }],
+                outputs: [{ name: 'balance', type: 'uint256' }],
+            },
+        ],
+        functionName: 'balanceOf',
+        args: walletAddress ? [walletAddress] : undefined,
         chainId: activeChainId,
-        token: usdcAddress,
-        enabled: Boolean(walletAddress && usdcAddress),
+        query: {
+            enabled: Boolean(walletAddress && usdcAddress),
+        },
     });
     const formatTokenBalance = (value: typeof ethBalanceData, decimals: number, symbol: string) => {
         if (!value) return `0.0 ${symbol}`;
         const parsed = parseFloat(formatUnits(value.value, value.decimals));
         return `${parsed.toFixed(decimals)} ${symbol}`;
     };
+    const usdcBalanceValue = usdcBalanceResult.data as bigint | undefined;
     const balanceByToken = {
         ETH: formatTokenBalance(ethBalanceData, 4, 'ETH'),
-        USDC: formatTokenBalance(usdcBalanceData, 2, 'USDC'),
+        USDC: usdcBalanceValue !== undefined
+            ? `${parseFloat(formatUnits(usdcBalanceValue, 6)).toFixed(2)} USDC`
+            : '0.0 USDC',
     };
     const getBalanceLabel = (token: string) =>
         token === 'USDC' ? balanceByToken.USDC : balanceByToken.ETH;
