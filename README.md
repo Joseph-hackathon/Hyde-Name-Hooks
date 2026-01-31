@@ -259,6 +259,20 @@ Key references:
 
 ---
 
+## Arc USDC Settlement Integration
+
+Arc is wired as the **post-swap settlement layer**. After a swap executes, Hyde triggers a settlement that converts
+swap output into **USDC** for payment-ready balances. The integration supports real Circle Wallet transfers and
+exposes settlement status for the UI.
+
+Project code (Arc integration):
+
+- [Arc settlement service (backend)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/services/arcSettlementService.ts)
+- [Arc settlement API routes](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/routes/api.ts)
+- [Arc settlement UI (frontend)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/frontend/src/pages/AppPage.tsx)
+
+---
+
 ## Technical Deep Dive
 
 ### Context Scoring Pipeline
