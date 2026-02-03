@@ -250,7 +250,7 @@ export default function VerifyPage() {
                                     <div className="flex-1">
                                         <h3 className="font-bold text-brand-dark mb-2">Claimed!</h3>
                                         <p className="text-slate-600 mb-4">
-                                            Your ENS context has been registered. You can now access privacy-enhanced execution on Uniswap v4.
+                                            Your ENS context has been registered. Go to the app to swap (Step 1) and settle the USDC you receive into payment-ready balance (Step 2).
                                         </p>
                                         <Link to="/app">
                                             <Button size="sm">Start Trading</Button>

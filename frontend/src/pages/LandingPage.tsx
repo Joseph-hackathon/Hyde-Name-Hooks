@@ -152,7 +152,7 @@ export default function LandingPage() {
         },
         {
             title: 'Hyde Swap',
-            body: 'Trade with selective disclosure and tier-gated protection on Uniswap v4.',
+            body: 'Step 1: Swap on Uniswap. Step 2: Settle the USDC you received into payment-ready balance (Arc). Trade with selective disclosure and tier-gated protection.',
             cta: 'Explore Hyde',
             to: '/app'
         }
@@ -309,13 +309,13 @@ export default function LandingPage() {
                             {
                                 step: '04',
                                 title: 'Swap',
-                                body: 'Uniswap v4 Hook enforces cooldown and tier gating at execution.',
+                                body: 'Step 1: Execute the trade on Uniswap (Pay → Receive). Hook enforces cooldown and tier gating.',
                                 accent: 'bg-emerald-50 text-emerald-600'
                             },
                             {
                                 step: '05',
                                 title: 'Settle',
-                                body: 'Arc finalizes swap output into USDC for payment-ready settlement.',
+                                body: 'Step 2: After you swap, Arc turns the USDC you received into payment-ready balance. Settlement does not perform a swap.',
                                 accent: 'bg-slate-50 text-slate-600'
                             }
                         ].map((item) => (
@@ -372,14 +372,15 @@ export default function LandingPage() {
                         </h2>
                         <p className="text-lg text-slate-600">
                             We use ENS as a trust anchor, compute a context score from real on-chain activity, and gate
-                            Uniswap v4 swaps through hooks. The result: privacy-preserving tiers for traders and safer
+                            Uniswap v4 swaps through hooks. You swap first, then settle the USDC you received into
+                            payment-ready balance via Arc. The result: privacy-preserving tiers for traders and safer
                             orderflow for LPs.
                         </p>
                         <div className="grid gap-4 sm:grid-cols-3">
                             {[
                                 { src: projectEns, label: 'ENS context' },
-                                { src: projectHook, label: 'Hooked swap' },
-                                { src: projectArc, label: 'Arc settlement' },
+                                { src: projectHook, label: 'Step 1: Swap' },
+                                { src: projectArc, label: 'Step 2: Settle USDC' },
                             ].map((item) => (
                                 <div key={item.label} className="gsap-card gsap-card-item bg-white/70 rounded-3xl border border-slate-100 p-4 shadow-sm">
                                     <img
@@ -631,7 +632,7 @@ export default function LandingPage() {
                             Ready to trade privately?
                         </h3>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                            Connect your ENS name and unlock selective disclosure execution on Uniswap v4.
+                            Connect your ENS name, swap with selective disclosure on Uniswap v4, then settle the USDC you receive into payment-ready balance.
                         </p>
                         <Link to="/app" className="inline-flex">
                             <Button size="lg">Launch App</Button>

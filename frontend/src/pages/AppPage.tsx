@@ -645,8 +645,11 @@ export default function AppPage() {
                     className="gsap-reveal md:col-span-2 ens-card ens-glass p-8 relative overflow-hidden"
                 >
                     <h2 className="text-2xl font-display font-bold text-brand-dark mb-2">Swap, quietly</h2>
-                    <p className="text-sm text-slate-600 mb-6">
+                    <p className="text-sm text-slate-600 mb-2">
                         Selective disclosure execution • Hide your intent • Anchor your name
+                    </p>
+                    <p className="text-xs text-slate-500 mb-6">
+                        <strong>Step 1.</strong> Execute the trade on Uniswap (Pay → Receive). Then use Step 2 to settle the USDC you receive into payment-ready balance.
                     </p>
 
                     <div className="space-y-4">
@@ -754,37 +757,41 @@ export default function AppPage() {
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <p className="text-[0.7rem] uppercase tracking-[0.3em] text-slate-400">
-                                    Post-swap settlement
+                                    Step 2 — After you swap
                                 </p>
                                 <h3 className="text-lg font-semibold text-brand-dark mt-2">
                                     Arc USDC Settlement (Testnet)
                                 </h3>
                                 <p className="text-xs text-slate-600 mt-2">
-                                    Swap executes on Uniswap, then Arc finalizes the result into payment-ready USDC.
+                                    Settlement does <strong>not</strong> perform a swap. It takes the USDC you already received in Step 1 and finalizes it into payment-ready balance (Arc/Circle). So: swap first, then enter the USDC amount you received and click Settle.
                                 </p>
                                 <div className="mt-3 text-[0.7rem] text-slate-500 space-y-1">
-                                    <div>• Purpose: settle swap output in USDC for payment-ready balance.</div>
-                                    <div>• Why: turns private swaps into real-world usable stable settlement.</div>
-                                    <div>• Hash: links the swap transaction to settlement tracking.</div>
-                                    <div>• ID: internal reference for the settlement request.</div>
+                                    <div>• <strong>Swap</strong> = on-chain trade (Uniswap). <strong>Settle</strong> = turn that USDC into payment-ready balance.</div>
+                                    <div>• When Receive is USDC above, this amount is synced from Step 1. Otherwise type the USDC you expect from the swap.</div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="mt-4 space-y-3">
                             <div className="flex flex-col gap-2">
-                                <label className="text-xs text-slate-500">Expected USDC amount (required)</label>
+                                <label className="text-xs text-slate-500">
+                                    Expected USDC amount (required) {receiveToken === 'USDC' && expectedReceiveAmount && (
+                                        <span className="text-brand-blue font-normal">— from Receive above</span>
+                                    )}
+                                </label>
                                 <input
                                     type="text"
-                                    value={payToken === 'USDC' ? payAmount : expectedReceiveAmount}
-                                    onChange={(e) => payToken === 'USDC' ? setPayAmount(e.target.value) : setExpectedReceiveAmount(e.target.value)}
-                                    placeholder={payToken === 'USDC' ? 'e.g. 10.50 (USDC you pay)' : 'e.g. 10.50 (from Uniswap quote)'}
+                                    value={receiveToken === 'USDC' ? expectedReceiveAmount : (payToken === 'USDC' ? payAmount : expectedReceiveAmount)}
+                                    onChange={(e) => receiveToken === 'USDC' ? setExpectedReceiveAmount(e.target.value) : (payToken === 'USDC' ? setPayAmount(e.target.value) : setExpectedReceiveAmount(e.target.value))}
+                                    placeholder={receiveToken === 'USDC' ? 'Same as Receive amount above' : (payToken === 'USDC' ? 'e.g. 10.50 (USDC you pay)' : 'e.g. 10.50 (USDC you expect from swap)')}
                                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
                                 />
                                 <p className="text-[0.65rem] text-slate-400">
-                                    {payToken === 'USDC'
-                                        ? 'USDC amount to settle (same as Pay above).'
-                                        : 'USDC amount you expect to receive. Settlement will use this.'}
+                                    {receiveToken === 'USDC'
+                                        ? 'Synced with Receive amount above. Change it there or here.'
+                                        : payToken === 'USDC'
+                                            ? 'USDC you pay in the swap (settle that amount).'
+                                            : 'USDC amount you expect to receive from the swap. Settlement will use this.'}
                                 </p>
                             </div>
                             <div className="flex flex-col gap-2">
@@ -1088,7 +1095,7 @@ export default function AppPage() {
                                             <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
                                         </div>
                                         <p className="mt-1 text-[0.65rem] text-slate-500">
-                                            Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. Balance check uses default RPC; if you see an RPC/balance error, retry after a few seconds or ensure your wallet has native token (e.g. Sepolia ETH) for gas.
+                                            Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. Use as <strong>source</strong> the chain where your wallet has native token for gas (e.g. Ethereum Sepolia if you have Sepolia ETH). Balance is checked on the source chain only.
                                         </p>
                                         <div className="mt-2 grid gap-2">
                                             <div className="flex items-center gap-2">
@@ -1158,8 +1165,23 @@ export default function AppPage() {
                                                 </button>
                                             </div>
                                             {bridgeEstimate && (
-                                                <div className="text-[0.65rem] text-slate-500">
-                                                    Estimate ready. Review fees before bridging.
+                                                <div className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem]">
+                                                    <div className="font-semibold text-slate-700">
+                                                        Estimate: {(bridgeEstimate as { amount?: string }).amount ?? '—'} {(bridgeEstimate as { token?: string }).token ?? 'USDC'}
+                                                    </div>
+                                                    {Array.isArray((bridgeEstimate as { gasFees?: unknown[] }).gasFees) && (
+                                                        <div className="text-slate-600">
+                                                            Gas: {((bridgeEstimate as { gasFees: Array<{ token?: string; fees?: { fee?: string } | null }> }).gasFees)
+                                                                .map((g) => (g.fees?.fee ? `${g.fees.fee} ${g.token ?? ''}` : g.token)).filter(Boolean).join(', ') || '—'}
+                                                        </div>
+                                                    )}
+                                                    {Array.isArray((bridgeEstimate as { fees?: Array<{ amount?: string | null }> }).fees) && (
+                                                        <div className="text-slate-600">
+                                                            Fees: {((bridgeEstimate as { fees: Array<{ amount?: string | null }> }).fees)
+                                                                .map((f) => f.amount ?? '0').join(', ')}
+                                                        </div>
+                                                    )}
+                                                    <div className="text-slate-500">Review above, then click Bridge.</div>
                                                 </div>
                                             )}
                                             {bridgeResult && (
