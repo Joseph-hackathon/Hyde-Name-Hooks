@@ -1088,7 +1088,7 @@ export default function AppPage() {
                                             <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
                                         </div>
                                         <p className="mt-1 text-[0.65rem] text-slate-500">
-                                            Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. If you see an error below, configure the server env.
+                                            Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. If you see an error below, configure the server env. If you get an RPC or balance error, try Ethereum Sepolia as source instead of Arc Testnet.
                                         </p>
                                         <div className="mt-2 grid gap-2">
                                             <div className="flex items-center gap-2">

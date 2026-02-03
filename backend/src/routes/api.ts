@@ -4,6 +4,7 @@ import { ContractService } from '../services/contractService';
 import { ArcSettlementService } from '../services/arcSettlementService';
 import { CircleGatewayService } from '../services/circleGatewayService';
 import { BridgeKitService } from '../services/bridgeKitService';
+import { serializeForJson } from '../utils/json';
 
 const router = Router();
 
@@ -428,9 +429,15 @@ router.post('/bridge/estimate', async (req: Request, res: Response) => {
             recipientAddress,
             config,
         });
-        res.json({ success: true, data: estimate });
+        res.json({ success: true, data: serializeForJson(estimate) });
     } catch (error: any) {
-        res.status(400).json({ error: error.message || 'Failed to estimate Bridge Kit transfer' });
+        const msg = error?.message || 'Failed to estimate Bridge Kit transfer';
+        const isRpcBalance = /native balance|RPC error|unknown RPC error/i.test(msg);
+        res.status(400).json({
+            error: isRpcBalance
+                ? 'Failed to get balance on source chain. Try another chain (e.g. Ethereum Sepolia) or try again later.'
+                : msg,
+        });
     }
 });
 
@@ -451,9 +458,15 @@ router.post('/bridge/transfer', async (req: Request, res: Response) => {
             recipientAddress,
             config,
         });
-        res.json({ success: true, data: result });
+        res.json({ success: true, data: serializeForJson(result) });
     } catch (error: any) {
-        res.status(400).json({ error: error.message || 'Failed to execute Bridge Kit transfer' });
+        const msg = error?.message || 'Failed to execute Bridge Kit transfer';
+        const isRpcBalance = /native balance|RPC error|unknown RPC error/i.test(msg);
+        res.status(400).json({
+            error: isRpcBalance
+                ? 'Failed to get balance on source chain. Try another chain (e.g. Ethereum Sepolia) or try again later.'
+                : msg,
+        });
     }
 });
 
