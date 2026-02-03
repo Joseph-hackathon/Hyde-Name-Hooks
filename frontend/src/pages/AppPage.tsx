@@ -55,8 +55,8 @@ export default function AppPage() {
     const [payAmount, setPayAmount] = useState('');
     const [swapError, setSwapError] = useState<string | null>(null);
     const [swapMessage, setSwapMessage] = useState<string | null>(null);
-    const [payToken, setPayToken] = useState('ETH');
-    const [receiveToken, setReceiveToken] = useState('USDC');
+    const [payToken, setPayToken] = useState('USDC');
+    const [receiveToken, setReceiveToken] = useState('ETH');
     const [swapTxHash, setSwapTxHash] = useState('');
     const [settlementStatus, setSettlementStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
     const [settlementError, setSettlementError] = useState<string | null>(null);
@@ -368,7 +368,7 @@ export default function AppPage() {
                 swapTxHash: swapTxHash.trim() || undefined,
                 inputToken: payToken,
                 outputToken: receiveToken,
-                inputAmount: payAmount,
+                inputAmount: (payAmount?.trim() || '0'),
                 outputAmount: receiveAmount,
                 sourceChainId: chainId || CHAINS.sepolia.id,
             });
