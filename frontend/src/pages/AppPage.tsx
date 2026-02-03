@@ -1088,7 +1088,7 @@ export default function AppPage() {
                                             <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
                                         </div>
                                         <p className="mt-1 text-[0.65rem] text-slate-500">
-                                            Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. If you see an error below, configure the server env. If you get an RPC or balance error, try Ethereum Sepolia as source instead of Arc Testnet.
+                                            Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. Balance check uses default RPC; if you see an RPC/balance error, retry after a few seconds or ensure your wallet has native token (e.g. Sepolia ETH) for gas.
                                         </p>
                                         <div className="mt-2 grid gap-2">
                                             <div className="flex items-center gap-2">
@@ -1189,8 +1189,11 @@ export default function AppPage() {
                                                 </div>
                                             )}
                                             {bridgeError && (
-                                                <div className="text-[0.65rem] text-amber-700">
-                                                    {bridgeError}
+                                                <div className="space-y-1 text-[0.65rem] text-amber-700">
+                                                    <div>{bridgeError}</div>
+                                                    {/RPC|balance|retry|native token/i.test(bridgeError) && (
+                                                        <div className="text-slate-600">Click Estimate or Bridge again in a few seconds to retry.</div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

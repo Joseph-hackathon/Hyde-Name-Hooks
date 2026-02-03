@@ -421,7 +421,7 @@ router.post('/bridge/estimate', async (req: Request, res: Response) => {
         if (!fromChain || !toChain || !amount) {
             return res.status(400).json({ error: 'Missing required fields: fromChain, toChain, amount' });
         }
-        const estimate = await bridgeKitService.estimateTransfer({
+        const estimate = await bridgeKitService.estimateTransferWithRetry({
             fromChain,
             toChain,
             amount,
@@ -435,7 +435,7 @@ router.post('/bridge/estimate', async (req: Request, res: Response) => {
         const isRpcBalance = /native balance|RPC error|unknown RPC error/i.test(msg);
         res.status(400).json({
             error: isRpcBalance
-                ? 'Failed to get balance on source chain. Try another chain (e.g. Ethereum Sepolia) or try again later.'
+                ? 'Source chain RPC may be temporarily unstable. Please retry in a moment. Ensure your wallet has some native token (e.g. Sepolia ETH) for gas.'
                 : msg,
         });
     }
@@ -450,7 +450,7 @@ router.post('/bridge/transfer', async (req: Request, res: Response) => {
         if (!fromChain || !toChain || !amount) {
             return res.status(400).json({ error: 'Missing required fields: fromChain, toChain, amount' });
         }
-        const result = await bridgeKitService.bridgeTransfer({
+        const result = await bridgeKitService.bridgeTransferWithRetry({
             fromChain,
             toChain,
             amount,
@@ -464,7 +464,7 @@ router.post('/bridge/transfer', async (req: Request, res: Response) => {
         const isRpcBalance = /native balance|RPC error|unknown RPC error/i.test(msg);
         res.status(400).json({
             error: isRpcBalance
-                ? 'Failed to get balance on source chain. Try another chain (e.g. Ethereum Sepolia) or try again later.'
+                ? 'Source chain RPC may be temporarily unstable. Please retry in a moment. Ensure your wallet has some native token (e.g. Sepolia ETH) for gas.'
                 : msg,
         });
     }

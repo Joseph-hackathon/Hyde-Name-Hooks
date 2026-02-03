@@ -31,6 +31,32 @@ export class BridgeKitService {
         return this.getKit().bridge(params);
     }
 
+    /** Run a bridge operation with one retry on RPC/balance errors (often transient). */
+    private static isRpcBalanceError(e: unknown): boolean {
+        const msg = e instanceof Error ? e.message : String(e);
+        return /native balance|RPC error|unknown RPC error/i.test(msg);
+    }
+
+    async estimateTransferWithRetry(request: BridgeKitTransferRequest): Promise<EstimateResult> {
+        try {
+            return await this.estimateTransfer(request);
+        } catch (e) {
+            if (!BridgeKitService.isRpcBalanceError(e)) throw e;
+            await new Promise((r) => setTimeout(r, 2000));
+            return this.estimateTransfer(request);
+        }
+    }
+
+    async bridgeTransferWithRetry(request: BridgeKitTransferRequest): Promise<BridgeResult> {
+        try {
+            return await this.bridgeTransfer(request);
+        } catch (e) {
+            if (!BridgeKitService.isRpcBalanceError(e)) throw e;
+            await new Promise((r) => setTimeout(r, 2000));
+            return this.bridgeTransfer(request);
+        }
+    }
+
     private getKit(): BridgeKit {
         if (!this.kit) {
             this.kit = new BridgeKit();
