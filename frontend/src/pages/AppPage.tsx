@@ -112,12 +112,7 @@ export default function AppPage() {
     } | null>(null);
     const [gatewayTransferError, setGatewayTransferError] = useState<string | null>(null);
 
-    const { signTypedDataAsync } = useSignTypedData({
-        domain: GATEWAY_EIP712_DOMAIN,
-        types: GATEWAY_EIP712_TYPES,
-        primaryType: 'BurnIntent',
-        message: (gatewayBurnIntent ?? {}) as BurnIntentMessage,
-    });
+    const { signTypedDataAsync } = useSignTypedData();
 
     const swapConfig = useMemo(() => {
         if (chainId === CHAINS.sepolia.id) {
@@ -506,7 +501,31 @@ export default function AppPage() {
         setGatewayTransferStatus('signing');
         setGatewayTransferError(null);
         try {
-            const signature = await signTypedDataAsync();
+            const message = {
+                ...gatewayBurnIntent,
+                maxBlockHeight: BigInt(gatewayBurnIntent.maxBlockHeight),
+                maxFee: BigInt(gatewayBurnIntent.maxFee),
+                spec: {
+                    ...gatewayBurnIntent.spec,
+                    value: BigInt(gatewayBurnIntent.spec.value),
+                    sourceContract: gatewayBurnIntent.spec.sourceContract as `0x${string}`,
+                    destinationContract: gatewayBurnIntent.spec.destinationContract as `0x${string}`,
+                    sourceToken: gatewayBurnIntent.spec.sourceToken as `0x${string}`,
+                    destinationToken: gatewayBurnIntent.spec.destinationToken as `0x${string}`,
+                    sourceDepositor: gatewayBurnIntent.spec.sourceDepositor as `0x${string}`,
+                    destinationRecipient: gatewayBurnIntent.spec.destinationRecipient as `0x${string}`,
+                    sourceSigner: gatewayBurnIntent.spec.sourceSigner as `0x${string}`,
+                    destinationCaller: gatewayBurnIntent.spec.destinationCaller as `0x${string}`,
+                    salt: gatewayBurnIntent.spec.salt as `0x${string}`,
+                    hookData: gatewayBurnIntent.spec.hookData as `0x${string}`,
+                },
+            };
+            const signature = await signTypedDataAsync({
+                domain: GATEWAY_EIP712_DOMAIN,
+                types: GATEWAY_EIP712_TYPES,
+                primaryType: 'BurnIntent',
+                message,
+            });
             setGatewayTransferStatus('submitting');
             const data = await transferGatewayBalance([ { burnIntent: gatewayBurnIntent, signature } ]);
             setGatewayTransferResult(data ?? null);
