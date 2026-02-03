@@ -348,17 +348,19 @@ export default function AppPage() {
 
         if (!address) {
             setSettlementStatus('error');
-        setSettlementError('Connect your wallet to settle on Arc.');
+            setSettlementError('Connect your wallet to settle on Arc.');
             return;
         }
-        if (!receiveAmount || Number.isNaN(Number(receiveAmount))) {
+        const usdcOutputAmount = payToken === 'USDC' ? (payAmount?.trim() || '') : receiveAmount;
+        const isValidUsdc = usdcOutputAmount && !Number.isNaN(Number(usdcOutputAmount)) && Number(usdcOutputAmount) > 0;
+        if (payToken !== 'USDC' && receiveToken !== 'USDC') {
             setSettlementStatus('error');
-            setSettlementError('Enter expected USDC amount (e.g. from Uniswap quote).');
+            setSettlementError('Arc settlement requires USDC. Set Pay or Receive to USDC.');
             return;
         }
-        if (receiveToken !== 'USDC') {
+        if (!isValidUsdc) {
             setSettlementStatus('error');
-        setSettlementError('Arc settlement requires USDC output.');
+            setSettlementError('Enter expected USDC amount (in Pay if paying USDC, or in Receive if receiving USDC).');
             return;
         }
 
@@ -369,7 +371,7 @@ export default function AppPage() {
                 inputToken: payToken,
                 outputToken: receiveToken,
                 inputAmount: (payAmount?.trim() || '0'),
-                outputAmount: receiveAmount,
+                outputAmount: usdcOutputAmount,
                 sourceChainId: chainId || CHAINS.sepolia.id,
             });
             setSettlementResult(result);
@@ -759,13 +761,15 @@ export default function AppPage() {
                                 <label className="text-xs text-slate-500">Expected USDC amount (required)</label>
                                 <input
                                     type="text"
-                                    value={expectedReceiveAmount}
-                                    onChange={(e) => setExpectedReceiveAmount(e.target.value)}
-                                    placeholder="e.g. 10.50 (from Uniswap quote)"
+                                    value={payToken === 'USDC' ? payAmount : expectedReceiveAmount}
+                                    onChange={(e) => payToken === 'USDC' ? setPayAmount(e.target.value) : setExpectedReceiveAmount(e.target.value)}
+                                    placeholder={payToken === 'USDC' ? 'e.g. 10.50 (USDC you pay)' : 'e.g. 10.50 (from Uniswap quote)'}
                                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
                                 />
                                 <p className="text-[0.65rem] text-slate-400">
-                                    Enter the USDC amount you expect from the swap. Settlement will use this.
+                                    {payToken === 'USDC'
+                                        ? 'USDC amount to settle (same as Pay above).'
+                                        : 'USDC amount you expect to receive. Settlement will use this.'}
                                 </p>
                             </div>
                             <div className="flex flex-col gap-2">
@@ -1063,6 +1067,9 @@ export default function AppPage() {
                                         <div className="flex items-center justify-between">
                                             <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
                                         </div>
+                                        <p className="mt-1 text-[0.65rem] text-slate-500">
+                                            Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. If you see an error below, configure the server env.
+                                        </p>
                                         <div className="mt-2 grid gap-2">
                                             <div className="flex items-center gap-2">
                                                 <select
