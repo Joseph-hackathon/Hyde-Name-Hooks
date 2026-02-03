@@ -27,13 +27,6 @@ npm run compile
 
 # Run tests
 npm test
-
-# Deploy to local network
-npx hardhat node  # Terminal 1
-npm run deploy:local  # Terminal 2
-
-# Deploy to Sepolia
-npm run deploy:sepolia
 ```
 
 ## Environment Variables

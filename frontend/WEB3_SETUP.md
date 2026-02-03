@@ -56,6 +56,5 @@ This app uses **MetaMask only** for wallet connectivity.
 
 ## Next Steps
 
-- Deploy contracts to Sepolia
 - Connect contract interactions
 - Add transaction signing

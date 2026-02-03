@@ -62,7 +62,14 @@ app.get('/', (req, res) => {
             checkAccess: 'GET /api/check-access/:address/:minTier',
             arcSettlement: 'POST /api/arc/settlement',
             arcSettlementStatus: 'GET /api/arc/settlement/:transactionId',
-            storkStream: 'GET /api/stork/stream',
+            gatewayInfo: 'GET /api/gateway/info',
+            gatewayDomains: 'GET /api/gateway/domains',
+            gatewayBuildBurnIntent: 'POST /api/gateway/build-burn-intent',
+            gatewayBalances: 'POST /api/gateway/balances',
+            gatewayTransfer: 'POST /api/gateway/transfer',
+            bridgeChains: 'GET /api/bridge/chains',
+            bridgeEstimate: 'POST /api/bridge/estimate',
+            bridgeTransfer: 'POST /api/bridge/transfer',
         },
     });
 });
@@ -89,7 +96,14 @@ app.listen(PORT, () => {
     console.log(`   GET  /api/check-access/:address/:minTier`);
     console.log(`   POST /api/arc/settlement`);
     console.log(`   GET  /api/arc/settlement/:transactionId`);
-    console.log(`   GET  /api/stork/stream`);
+    console.log(`   GET  /api/gateway/info`);
+    console.log(`   GET  /api/gateway/domains`);
+    console.log(`   POST /api/gateway/build-burn-intent`);
+    console.log(`   POST /api/gateway/balances`);
+    console.log(`   POST /api/gateway/transfer`);
+    console.log(`   GET  /api/bridge/chains`);
+    console.log(`   POST /api/bridge/estimate`);
+    console.log(`   POST /api/bridge/transfer`);
     console.log('\n✨ Ready to serve!\n');
 });
 

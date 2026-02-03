@@ -2,15 +2,51 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Repeat, Activity, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useBalance, useChainId, useReadContract } from 'wagmi';
+import { useBalance, useChainId, useReadContract, useSignTypedData } from 'wagmi';
 import { formatUnits, isAddress } from 'viem';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { CHAINS } from '../config/contracts';
-import { createArcSettlement, getArcSettlementStatus } from '../lib/api';
+import {
+    createArcSettlement,
+    getArcSettlementStatus,
+    getGatewayBalances,
+    getGatewayDomains,
+    buildBurnIntent,
+    transferGatewayBalance,
+    getBridgeChains,
+    estimateBridgeTransfer,
+    executeBridgeTransfer,
+} from '../lib/api';
+import type { BurnIntentMessage } from '../lib/api';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+const GATEWAY_EIP712_DOMAIN = { name: 'GatewayWallet', version: '1' } as const;
+const GATEWAY_EIP712_TYPES = {
+    TransferSpec: [
+        { name: 'version', type: 'uint32' },
+        { name: 'sourceDomain', type: 'uint32' },
+        { name: 'destinationDomain', type: 'uint32' },
+        { name: 'sourceContract', type: 'bytes32' },
+        { name: 'destinationContract', type: 'bytes32' },
+        { name: 'sourceToken', type: 'bytes32' },
+        { name: 'destinationToken', type: 'bytes32' },
+        { name: 'sourceDepositor', type: 'bytes32' },
+        { name: 'destinationRecipient', type: 'bytes32' },
+        { name: 'sourceSigner', type: 'bytes32' },
+        { name: 'destinationCaller', type: 'bytes32' },
+        { name: 'value', type: 'uint256' },
+        { name: 'salt', type: 'bytes32' },
+        { name: 'hookData', type: 'bytes' },
+    ],
+    BurnIntent: [
+        { name: 'maxBlockHeight', type: 'uint256' },
+        { name: 'maxFee', type: 'uint256' },
+        { name: 'spec', type: 'TransferSpec' },
+    ],
+} as const;
 
 export default function AppPage() {
     const rootRef = useRef<HTMLDivElement>(null);
@@ -45,29 +81,43 @@ export default function AppPage() {
     const [autoCheckCount, setAutoCheckCount] = useState(0);
     const terminalStates = ['COMPLETE', 'FAILED', 'DENIED', 'CANCELLED'];
     const arcExplorerBase = (import.meta.env.VITE_ARC_EXPLORER_BASE || '').trim();
-    const rawApiBase = import.meta.env.VITE_API_URL;
-    const fallbackBase = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
-    const apiBase = rawApiBase
-        ? (rawApiBase.startsWith('http') ? rawApiBase : `https://${rawApiBase}`)
-        : fallbackBase;
-    const storkStreamUrl = `${apiBase.replace(/\/$/, '')}/api/stork/stream`;
-    const [storkPrices, setStorkPrices] = useState<{
-        ethUsd?: number;
-        usdcUsd?: number;
-        updatedAt?: number;
-    }>({});
-    const [storkError, setStorkError] = useState<string | null>(null);
-    const [storkStatus, setStorkStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
-    const [storkSource, setStorkSource] = useState('Stork WS');
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [helpTopic, setHelpTopic] = useState<'swap-hash' | 'settlement-id' | 'settlement-hash' | null>(null);
+    const [gatewayStatus, setGatewayStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [gatewayError, setGatewayError] = useState<string | null>(null);
+    const [gatewayBalances, setGatewayBalances] = useState<Array<{ domain: number; balance: string }> | null>(null);
+    const [bridgeChains, setBridgeChains] = useState<Array<{ chain: string; name: string; type: string }>>([]);
+    const [bridgeFromChain, setBridgeFromChain] = useState('');
+    const [bridgeToChain, setBridgeToChain] = useState('');
+    const [bridgeAmount, setBridgeAmount] = useState('');
+    const [bridgeSpeed, setBridgeSpeed] = useState<'FAST' | 'SLOW'>('FAST');
+    const [bridgeMaxFee, setBridgeMaxFee] = useState('');
+    const [bridgeStatus, setBridgeStatus] = useState<'idle' | 'estimating' | 'bridging' | 'success' | 'error'>('idle');
+    const [bridgeError, setBridgeError] = useState<string | null>(null);
+    const [bridgeEstimate, setBridgeEstimate] = useState<Record<string, unknown> | null>(null);
+    const [bridgeResult, setBridgeResult] = useState<Record<string, unknown> | null>(null);
 
-    const getStorkBadge = () => {
-        if (storkStatus === 'connected') return { label: 'LIVE', className: 'bg-emerald-100 text-emerald-700' };
-        if (storkStatus === 'connecting') return { label: 'CONNECTING', className: 'bg-amber-100 text-amber-700' };
-        if (storkStatus === 'disconnected') return { label: 'DISCONNECTED', className: 'bg-slate-100 text-slate-500' };
-        return { label: 'ERROR', className: 'bg-red-100 text-red-700' };
-    };
+    const [gatewayDomains, setGatewayDomains] = useState<Array<{ domain: number; name: string }>>([]);
+    const [gatewaySourceDomain, setGatewaySourceDomain] = useState<number>(0);
+    const [gatewayDestDomain, setGatewayDestDomain] = useState<number>(1);
+    const [gatewayAmount, setGatewayAmount] = useState('');
+    const [gatewayBurnIntent, setGatewayBurnIntent] = useState<BurnIntentMessage | null>(null);
+    const [gatewayTransferStatus, setGatewayTransferStatus] = useState<'idle' | 'building' | 'signing' | 'submitting' | 'success' | 'error'>('idle');
+    const [gatewayTransferResult, setGatewayTransferResult] = useState<{
+        transferId?: string;
+        attestation?: string;
+        signature?: string;
+        fees?: { total?: string; token?: string };
+        expirationBlock?: string;
+    } | null>(null);
+    const [gatewayTransferError, setGatewayTransferError] = useState<string | null>(null);
+
+    const { signTypedDataAsync } = useSignTypedData({
+        domain: GATEWAY_EIP712_DOMAIN,
+        types: GATEWAY_EIP712_TYPES,
+        primaryType: 'BurnIntent',
+        message: (gatewayBurnIntent ?? {}) as BurnIntentMessage,
+    });
 
     const swapConfig = useMemo(() => {
         if (chainId === CHAINS.sepolia.id) {
@@ -197,32 +247,53 @@ export default function AppPage() {
     const getBalanceLabel = (token: string) =>
         token === 'USDC' ? balanceByToken.USDC : balanceByToken.ETH;
 
-    const isStorkReady = storkStatus === 'connected' && Boolean(storkPrices.ethUsd);
-    const getRate = (fromToken: string, toToken: string) => {
-        if (fromToken === toToken) return 1;
-        if (!isStorkReady) return null;
-        if (fromToken === 'ETH' && toToken === 'USDC') {
-            const usdcUsd = storkPrices.usdcUsd || 1;
-            return storkPrices.ethUsd! / usdcUsd;
-        }
-        if (fromToken === 'USDC' && toToken === 'ETH') {
-            const usdcUsd = storkPrices.usdcUsd || 1;
-            return usdcUsd / storkPrices.ethUsd!;
-        }
-        return null;
-    };
+    const [expectedReceiveAmount, setExpectedReceiveAmount] = useState('');
+    const receiveAmount = expectedReceiveAmount.trim();
+    const receivePlaceholder = 'Enter expected amount (e.g. from Uniswap)';
 
-    const receiveAmount = useMemo(() => {
-        const amount = Number(payAmount);
-        if (!payAmount || Number.isNaN(amount)) return '';
-        const rate = getRate(payToken, receiveToken);
-        if (!rate) return '';
-        const value = amount * rate;
-        return receiveToken === 'USDC'
-            ? value.toFixed(2)
-            : value.toFixed(6);
-    }, [payAmount, payToken, receiveToken]);
-    const receivePlaceholder = isStorkReady ? 'Quoted on Uniswap' : 'Waiting for live price';
+    useEffect(() => {
+        let active = true;
+        const loadChains = async () => {
+            try {
+                const chains = await getBridgeChains();
+                if (!active) return;
+                setBridgeChains(chains);
+                const arcChain = chains.find((chain) => chain.chain.toLowerCase().includes('arc'))?.chain;
+                const baseChain = chains.find((chain) => chain.chain.toLowerCase().includes('base'))?.chain;
+                setBridgeFromChain(arcChain || chains[0]?.chain || '');
+                setBridgeToChain(baseChain || chains[1]?.chain || chains[0]?.chain || '');
+            } catch (error: any) {
+                if (!active) return;
+                setBridgeError(error?.message || 'Failed to load Bridge Kit chains.');
+            }
+        };
+        loadChains();
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        const load = async () => {
+            try {
+                const list = await getGatewayDomains();
+                if (active) setGatewayDomains(Array.isArray(list) ? list : []);
+            } catch {
+                if (active) setGatewayDomains([{ domain: 0, name: 'Ethereum Sepolia' }, { domain: 1, name: 'Avalanche Fuji' }, { domain: 6, name: 'Base Sepolia' }]);
+            }
+        };
+        load();
+        return () => { active = false; };
+    }, []);
+
+    useEffect(() => {
+        if (settlementResult?.usdcAmount) {
+            setBridgeAmount(settlementResult.usdcAmount);
+        } else if (receiveAmount && receiveToken === 'USDC') {
+            setBridgeAmount(receiveAmount);
+        }
+    }, [settlementResult?.usdcAmount, receiveAmount, receiveToken]);
 
     const handleSwitch = () => {
         setPayToken(receiveToken);
@@ -287,7 +358,7 @@ export default function AppPage() {
         }
         if (!receiveAmount || Number.isNaN(Number(receiveAmount))) {
             setSettlementStatus('error');
-        setSettlementError('Enter a valid swap amount first.');
+            setSettlementError('Enter expected USDC amount (e.g. from Uniswap quote).');
             return;
         }
         if (receiveToken !== 'USDC') {
@@ -335,38 +406,120 @@ export default function AppPage() {
         }
     };
 
-    const openHelp = (topic: 'swap-hash' | 'settlement-id' | 'settlement-hash') => {
-        setHelpTopic(topic);
-        setIsHelpOpen(true);
-    };
-
-    const parseStorkPrice = (raw: string) => {
+    const handleGatewayBalances = async () => {
+        if (!address) return;
+        setGatewayStatus('loading');
+        setGatewayError(null);
         try {
-            const value = BigInt(raw);
-            const base = 10n ** 18n;
-            const whole = value / base;
-            const fraction = value % base;
-            const fractionText = fraction.toString().padStart(18, '0').slice(0, 6);
-            return Number(`${whole.toString()}.${fractionText}`);
-        } catch {
-            return null;
+            const result = await getGatewayBalances({
+                token: 'USDC',
+                depositor: address,
+            });
+            setGatewayBalances(result.balances || []);
+            setGatewayStatus('success');
+        } catch (error: any) {
+            setGatewayStatus('error');
+            setGatewayError(error?.message || 'Failed to load Gateway balances.');
         }
     };
 
-    const applyStorkUpdate = (data: any) => {
-        const values = data || {};
-        const eth = values?.ETHUSD?.price;
-        const usdc = values?.USDCUSD?.price;
-        const timestamp = values?.ETHUSD?.timestamp || values?.USDCUSD?.timestamp;
-        const ethUsd = eth ? parseStorkPrice(eth) : null;
-        const usdcUsd = usdc ? parseStorkPrice(usdc) : null;
-        if (!ethUsd && !usdcUsd) return;
-        setStorkPrices((prev) => ({
-            ethUsd: ethUsd ?? prev.ethUsd,
-            usdcUsd: usdcUsd ?? prev.usdcUsd,
-            updatedAt: timestamp ? Math.floor(Number(timestamp) / 1e9) : Math.floor(Date.now() / 1000),
-        }));
-        setStorkSource('Stork WS');
+    const handleBridgeEstimate = async () => {
+        if (!bridgeFromChain || !bridgeToChain || !bridgeAmount) {
+            setBridgeError('Select chains and amount first.');
+            return;
+        }
+        setBridgeStatus('estimating');
+        setBridgeError(null);
+        try {
+            const result = await estimateBridgeTransfer({
+                fromChain: bridgeFromChain,
+                toChain: bridgeToChain,
+                amount: bridgeAmount,
+                config: {
+                    transferSpeed: bridgeSpeed,
+                    maxFee: bridgeMaxFee || undefined,
+                },
+            });
+            setBridgeEstimate(result);
+            setBridgeStatus('idle');
+        } catch (error: any) {
+            setBridgeStatus('error');
+            setBridgeError(error?.message || 'Failed to estimate bridge transfer.');
+        }
+    };
+
+    const handleBridgeTransfer = async () => {
+        if (!bridgeFromChain || !bridgeToChain || !bridgeAmount) {
+            setBridgeError('Select chains and amount first.');
+            return;
+        }
+        setBridgeStatus('bridging');
+        setBridgeError(null);
+        try {
+            const result = await executeBridgeTransfer({
+                fromChain: bridgeFromChain,
+                toChain: bridgeToChain,
+                amount: bridgeAmount,
+                config: {
+                    transferSpeed: bridgeSpeed,
+                    maxFee: bridgeMaxFee || undefined,
+                },
+            });
+            setBridgeResult(result);
+            setBridgeStatus('success');
+        } catch (error: any) {
+            setBridgeStatus('error');
+            setBridgeError(error?.message || 'Bridge transfer failed.');
+        }
+    };
+
+    const handleBuildBurnIntent = async () => {
+        if (!address || !gatewayAmount) {
+            setGatewayTransferError('Enter amount and connect wallet.');
+            return;
+        }
+        setGatewayTransferStatus('building');
+        setGatewayTransferError(null);
+        setGatewayTransferResult(null);
+        setGatewayBurnIntent(null);
+        try {
+            const { burnIntent } = await buildBurnIntent({
+                sourceDomain: gatewaySourceDomain,
+                destinationDomain: gatewayDestDomain,
+                amount: gatewayAmount,
+                sourceDepositor: address,
+                destinationRecipient: address,
+            });
+            setGatewayBurnIntent(burnIntent);
+            setGatewayTransferStatus('idle');
+        } catch (error: any) {
+            setGatewayTransferStatus('error');
+            setGatewayTransferError(error?.message || 'Failed to build burn intent.');
+        }
+    };
+
+    const handleSignAndSubmitGateway = async () => {
+        if (!gatewayBurnIntent) {
+            setGatewayTransferError('Build burn intent first.');
+            return;
+        }
+        setGatewayTransferStatus('signing');
+        setGatewayTransferError(null);
+        try {
+            const signature = await signTypedDataAsync();
+            setGatewayTransferStatus('submitting');
+            const data = await transferGatewayBalance([ { burnIntent: gatewayBurnIntent, signature } ]);
+            setGatewayTransferResult(data ?? null);
+            setGatewayTransferStatus('success');
+        } catch (error: any) {
+            setGatewayTransferStatus('error');
+            setGatewayTransferError(error?.message || 'Sign or submit failed.');
+        }
+    };
+
+    const openHelp = (topic: 'swap-hash' | 'settlement-id' | 'settlement-hash') => {
+        setHelpTopic(topic);
+        setIsHelpOpen(true);
     };
 
     const getFailureResolution = (reason?: string) => {
@@ -410,60 +563,6 @@ export default function AppPage() {
 
         return () => clearTimeout(timeout);
     }, [autoCheckEnabled, settlementResult?.circleTransactionId, circleStatus, autoCheckCount]);
-
-    useEffect(() => {
-        setStorkStatus('connecting');
-        setStorkError(null);
-
-        const source = new EventSource(storkStreamUrl);
-
-        const handlePrice = (event: MessageEvent) => {
-            try {
-                const payload = JSON.parse(event.data);
-                applyStorkUpdate(payload?.data || {});
-                setStorkStatus('connected');
-            } catch {
-            setStorkError('Failed to parse Stork price data.');
-            }
-        };
-
-        const handleStatus = (event: MessageEvent) => {
-            try {
-                const payload = JSON.parse(event.data);
-                if (payload?.state === 'error') {
-                    setStorkStatus('error');
-                    setStorkError(payload?.message || 'Stork stream error.');
-                    return;
-                }
-                if (payload?.state === 'connected') {
-                    setStorkStatus('connected');
-                    setStorkError(null);
-                    return;
-                }
-                if (payload?.state === 'disconnected') {
-                    setStorkStatus('disconnected');
-                    return;
-                }
-            } catch {
-                setStorkStatus('error');
-                setStorkError('Failed to handle Stork status.');
-            }
-        };
-
-        source.addEventListener('price', handlePrice as EventListener);
-        source.addEventListener('status', handleStatus as EventListener);
-
-        source.onerror = () => {
-            setStorkStatus('error');
-            setStorkError('Stork stream connection failed.');
-        };
-
-        return () => {
-            source.removeEventListener('price', handlePrice as EventListener);
-            source.removeEventListener('status', handleStatus as EventListener);
-            source.close();
-        };
-    }, [storkStreamUrl]);
 
     return (
         <>
@@ -566,10 +665,10 @@ export default function AppPage() {
                             <div className="flex justify-between items-center">
                                 <input
                                     type="text"
-                                    value={receiveAmount}
+                                    value={expectedReceiveAmount}
+                                    onChange={(e) => setExpectedReceiveAmount(e.target.value)}
                                     placeholder={receivePlaceholder}
                                     className="bg-transparent text-4xl font-display font-bold text-brand-dark outline-none w-full"
-                                    disabled
                                 />
                                 <select
                                     value={receiveToken}
@@ -613,44 +712,6 @@ export default function AppPage() {
 
                     <div className="mt-4 text-center text-xs text-slate-500">
                         Powered by Uniswap v4 Hook • ENS Context Gated
-                    </div>
-                    <div className="mt-3 rounded-xl border border-slate-100 bg-white/70 px-4 py-3 text-xs text-slate-600">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Activity className="w-4 h-4 text-brand-blue" />
-                                <span>Stork Live Price</span>
-                                <span className={`rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ${getStorkBadge().className}`}>
-                                    {getStorkBadge().label}
-                                </span>
-                            </div>
-                            <span className="font-semibold text-brand-dark">
-                                {storkPrices.ethUsd ? `ETH ${storkPrices.ethUsd.toFixed(2)} USD` : 'Waiting'}
-                            </span>
-                        </div>
-                        <div className="mt-1 flex items-center justify-between">
-                            <span>USDC</span>
-                            <span className="font-semibold text-brand-dark">
-                                {storkPrices.usdcUsd ? `${storkPrices.usdcUsd.toFixed(4)} USD` : 'Waiting'}
-                            </span>
-                        </div>
-                        <div className="mt-1 flex items-center justify-between text-[0.65rem] text-slate-400">
-                            <span>Source</span>
-                            <span>{storkSource}</span>
-                        </div>
-                        <div className="mt-1 flex items-center justify-between text-[0.65rem] text-slate-400">
-                            <span>Status</span>
-                            <span>{storkStatus}</span>
-                        </div>
-                        <div className="mt-1 text-[0.65rem] text-slate-400">
-                            {storkPrices.updatedAt
-                                ? `Last update: ${new Date(storkPrices.updatedAt * 1000).toLocaleTimeString()}`
-                                : 'Waiting for updates'}
-                        </div>
-                        {storkError && (
-                            <div className="mt-1 text-[0.65rem] text-amber-700">
-                                {storkError}
-                            </div>
-                        )}
                     </div>
 
                     <div className="mt-6 rounded-2xl border border-slate-100 bg-white/70 p-5">
@@ -853,6 +914,229 @@ export default function AppPage() {
                                             })()}
                                         </div>
                                     )}
+                            </div>
+                        )}
+                        {settlementStatus === 'success' && settlementResult && (
+                            <div className="mt-4 rounded-xl border border-slate-100 bg-white/70 px-4 py-3 text-xs text-slate-600">
+                                <div className="flex items-center justify-between">
+                                    <span className="uppercase tracking-[0.25em] text-[0.6rem] text-slate-400">
+                                        Post-settlement mobility
+                                    </span>
+                                </div>
+                                <div className="mt-3 grid gap-4 md:grid-cols-2">
+                                    <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-semibold text-brand-dark">Gateway unified balance</span>
+                                            <button
+                                                type="button"
+                                                onClick={handleGatewayBalances}
+                                                className="text-[0.65rem] font-semibold text-brand-blue underline"
+                                            >
+                                                {gatewayStatus === 'loading' ? 'Loading...' : 'Refresh'}
+                                            </button>
+                                        </div>
+                                        <p className="mt-1 text-[0.65rem] text-slate-500">
+                                            Check unified USDC balances after settlement.
+                                        </p>
+                                        {gatewayBalances && (
+                                            <div className="mt-2 space-y-1 text-[0.65rem] text-slate-600">
+                                                {gatewayBalances.length === 0 && <div>No balances yet.</div>}
+                                                {gatewayBalances.map((entry) => (
+                                                    <div key={`${entry.domain}-${entry.balance}`} className="flex justify-between">
+                                                        <span>Domain {entry.domain}</span>
+                                                        <span className="font-semibold text-brand-dark">{entry.balance} USDC</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {gatewayError && (
+                                            <div className="mt-2 text-[0.65rem] text-amber-700">
+                                                {gatewayError}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-semibold text-brand-dark">Gateway transfer (burn intent)</span>
+                                        </div>
+                                        <p className="mt-1 text-[0.65rem] text-slate-500">
+                                            Build burn intent, sign with wallet, submit to Gateway.
+                                        </p>
+                                        <div className="mt-2 grid gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={gatewaySourceDomain}
+                                                    onChange={(e) => setGatewaySourceDomain(Number(e.target.value))}
+                                                    className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                >
+                                                    {gatewayDomains.map((d) => (
+                                                        <option key={d.domain} value={d.domain}>{d.name}</option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    value={gatewayDestDomain}
+                                                    onChange={(e) => setGatewayDestDomain(Number(e.target.value))}
+                                                    className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                >
+                                                    {gatewayDomains.map((d) => (
+                                                        <option key={d.domain} value={d.domain}>{d.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={gatewayAmount}
+                                                onChange={(e) => setGatewayAmount(e.target.value)}
+                                                placeholder="USDC amount"
+                                                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleBuildBurnIntent}
+                                                    className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.65rem] font-semibold text-slate-700"
+                                                    disabled={gatewayTransferStatus === 'building' || gatewayTransferStatus === 'submitting'}
+                                                >
+                                                    {gatewayTransferStatus === 'building' ? 'Building...' : 'Build burn intent'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleSignAndSubmitGateway}
+                                                    className="flex-1 rounded-lg bg-brand-blue px-2 py-1 text-[0.65rem] font-semibold text-white"
+                                                    disabled={!gatewayBurnIntent || gatewayTransferStatus === 'signing' || gatewayTransferStatus === 'submitting'}
+                                                >
+                                                    {gatewayTransferStatus === 'signing' ? 'Signing...' : gatewayTransferStatus === 'submitting' ? 'Submitting...' : 'Sign & submit'}
+                                                </button>
+                                            </div>
+                                            {gatewayBurnIntent && (
+                                                <div className="text-[0.65rem] text-slate-500">
+                                                    Burn intent ready. Sign & submit to Gateway.
+                                                </div>
+                                            )}
+                                            {gatewayTransferResult && (
+                                                <div className="mt-2 space-y-1 rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-2 text-[0.65rem] text-emerald-800">
+                                                    {gatewayTransferResult.transferId && <div>Transfer ID: {gatewayTransferResult.transferId}</div>}
+                                                    {gatewayTransferResult.fees?.total != null && <div>Fees: {gatewayTransferResult.fees.total} {gatewayTransferResult.fees.token ?? 'USDC'}</div>}
+                                                    {gatewayTransferResult.expirationBlock && <div>Expires at block: {gatewayTransferResult.expirationBlock}</div>}
+                                                </div>
+                                            )}
+                                            {gatewayTransferError && (
+                                                <div className="text-[0.65rem] text-amber-700">{gatewayTransferError}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 grid gap-4 md:grid-cols-1">
+                                    <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
+                                        </div>
+                                        <div className="mt-2 grid gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={bridgeFromChain}
+                                                    onChange={(event) => setBridgeFromChain(event.target.value)}
+                                                    className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                >
+                                                    {bridgeChains.map((chain) => (
+                                                        <option key={`from-${chain.chain}`} value={chain.chain}>
+                                                            {chain.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    value={bridgeToChain}
+                                                    onChange={(event) => setBridgeToChain(event.target.value)}
+                                                    className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                >
+                                                    {bridgeChains.map((chain) => (
+                                                        <option key={`to-${chain.chain}`} value={chain.chain}>
+                                                            {chain.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={bridgeAmount}
+                                                    onChange={(event) => setBridgeAmount(event.target.value)}
+                                                    placeholder="USDC amount"
+                                                    className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                />
+                                                <select
+                                                    value={bridgeSpeed}
+                                                    onChange={(event) => setBridgeSpeed(event.target.value as 'FAST' | 'SLOW')}
+                                                    className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                >
+                                                    <option value="FAST">FAST</option>
+                                                    <option value="SLOW">SLOW</option>
+                                                </select>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={bridgeMaxFee}
+                                                onChange={(event) => setBridgeMaxFee(event.target.value)}
+                                                placeholder="Max fee (optional)"
+                                                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleBridgeEstimate}
+                                                    className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.65rem] font-semibold text-slate-700"
+                                                    disabled={bridgeStatus === 'estimating' || bridgeStatus === 'bridging'}
+                                                >
+                                                    {bridgeStatus === 'estimating' ? 'Estimating...' : 'Estimate'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleBridgeTransfer}
+                                                    className="flex-1 rounded-lg bg-brand-blue px-2 py-1 text-[0.65rem] font-semibold text-white"
+                                                    disabled={bridgeStatus === 'bridging'}
+                                                >
+                                                    {bridgeStatus === 'bridging' ? 'Bridging...' : 'Bridge'}
+                                                </button>
+                                            </div>
+                                            {bridgeEstimate && (
+                                                <div className="text-[0.65rem] text-slate-500">
+                                                    Estimate ready. Review fees before bridging.
+                                                </div>
+                                            )}
+                                            {bridgeResult && (
+                                                <div className="mt-2 space-y-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem]">
+                                                    <div className="font-semibold text-brand-dark">
+                                                        Bridge result: {(bridgeResult as { state?: string }).state ?? 'submitted'} · {(bridgeResult as { amount?: string }).amount ?? '—'} {(bridgeResult as { token?: string }).token ?? 'USDC'}
+                                                    </div>
+                                                    {Array.isArray((bridgeResult as { steps?: unknown[] }).steps) && (
+                                                        <div className="space-y-1.5">
+                                                            <span className="font-semibold text-slate-600">Steps</span>
+                                                            {((bridgeResult as { steps: Array<{ name?: string; state?: string; txHash?: string; explorerUrl?: string; errorMessage?: string }> }).steps).map((step, i) => (
+                                                                <div key={i} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded border border-slate-100 bg-white px-2 py-1">
+                                                                    <span className="font-medium text-slate-700">{step.name ?? `Step ${i + 1}`}</span>
+                                                                    <span className={`rounded px-1 font-medium ${step.state === 'success' ? 'bg-emerald-100 text-emerald-700' : step.state === 'error' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
+                                                                        {step.state ?? 'pending'}
+                                                                    </span>
+                                                                    {step.txHash && (
+                                                                        <a href={step.explorerUrl ?? `https://etherscan.io/tx/${step.txHash}`} target="_blank" rel="noopener noreferrer" className="text-brand-blue underline">
+                                                                            tx: {step.txHash.slice(0, 10)}…{step.txHash.slice(-8)}
+                                                                        </a>
+                                                                    )}
+                                                                    {step.errorMessage && <span className="text-amber-700">{step.errorMessage}</span>}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {bridgeError && (
+                                                <div className="text-[0.65rem] text-amber-700">
+                                                    {bridgeError}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

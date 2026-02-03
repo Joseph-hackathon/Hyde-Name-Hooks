@@ -2,13 +2,16 @@ import { Router, Request, Response } from 'express';
 import { ENSContextService } from '../services/ensContextService';
 import { ContractService } from '../services/contractService';
 import { ArcSettlementService } from '../services/arcSettlementService';
-import WebSocket, { RawData } from 'ws';
+import { CircleGatewayService } from '../services/circleGatewayService';
+import { BridgeKitService } from '../services/bridgeKitService';
 
 const router = Router();
 
 let ensService: ENSContextService;
 let contractService: ContractService;
 const arcSettlementService = new ArcSettlementService();
+const circleGatewayService = new CircleGatewayService();
+const bridgeKitService = new BridgeKitService();
 
 function requireServices(res: Response): boolean {
     if (!ensService || !contractService) {
@@ -310,81 +313,146 @@ router.get('/arc/settlement/:transactionId', async (req: Request, res: Response)
 });
 
 /**
- * GET /api/stork/stream
- * Streams Stork prices over SSE using a backend WS connection.
+ * GET /api/gateway/info
  */
-router.get('/stork/stream', (req: Request, res: Response) => {
-    const token = process.env.STORK_WS_TOKEN;
-    if (!token) {
-        res.status(503).json({ error: 'STORK_WS_TOKEN is not configured' });
-        return;
+router.get('/gateway/info', async (_req: Request, res: Response) => {
+    try {
+        const info = await circleGatewayService.getInfo();
+        res.json({ success: true, data: info });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to fetch Gateway info' });
     }
+});
 
-    const wsUrl = process.env.STORK_WS_URL || 'wss://api.jp.stork-oracle.network/evm/subscribe';
-    const assets = (process.env.STORK_WS_ASSETS || 'ETHUSD,USDCUSD')
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean);
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders?.();
-
-    const sendEvent = (event: string, data: unknown) => {
-        res.write(`event: ${event}\n`);
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
-    };
-
-    const ws = new WebSocket(wsUrl, {
-        headers: {
-            Authorization: `Basic ${token}`,
-        },
-    });
-
-    const close = () => {
-        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-            ws.close();
+/**
+ * POST /api/gateway/balances
+ */
+router.post('/gateway/balances', async (req: Request, res: Response) => {
+    try {
+        const { token, depositor, domains } = req.body;
+        if (!token || !depositor) {
+            return res.status(400).json({ error: 'Missing required fields: token, depositor' });
         }
-        res.end();
-    };
+        const balances = await circleGatewayService.getBalances({ token, depositor, domains });
+        res.json({ success: true, data: balances });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to fetch Gateway balances' });
+    }
+});
 
-    ws.on('open', () => {
-        ws.send(JSON.stringify({ type: 'subscribe', data: assets }));
-        sendEvent('status', { state: 'connected' });
-    });
+/**
+ * GET /api/gateway/domains
+ * Returns supported domain IDs and names for burn intent UI.
+ */
+router.get('/gateway/domains', async (_req: Request, res: Response) => {
+    try {
+        const domains = circleGatewayService.getDomainConfig();
+        res.json({ success: true, data: domains });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to fetch Gateway domains' });
+    }
+});
 
-    ws.on('message', (data: RawData) => {
-        try {
-            const payload = JSON.parse(data.toString());
-            if (payload?.type !== 'oracle_prices' || !payload?.data) return;
-            const priceData = payload.data;
-            const eth = priceData.ETHUSD;
-            const usdc = priceData.USDCUSD;
-            if (!eth && !usdc) return;
-            sendEvent('price', {
-                data: {
-                    ...(eth ? { ETHUSD: eth } : {}),
-                    ...(usdc ? { USDCUSD: usdc } : {}),
-                },
+/**
+ * POST /api/gateway/build-burn-intent
+ * Builds a single burn intent message for EIP-712 signing (Gateway transfer).
+ */
+router.post('/gateway/build-burn-intent', async (req: Request, res: Response) => {
+    try {
+        const { sourceDomain, destinationDomain, amount, sourceDepositor, destinationRecipient, maxFee } = req.body;
+        if (
+            sourceDomain === undefined ||
+            destinationDomain === undefined ||
+            !amount ||
+            !sourceDepositor ||
+            !destinationRecipient
+        ) {
+            return res.status(400).json({
+                error: 'Missing required fields: sourceDomain, destinationDomain, amount, sourceDepositor, destinationRecipient',
             });
-        } catch {
-            // ignore malformed payloads
         }
-    });
+        const burnIntent = circleGatewayService.buildBurnIntent({
+            sourceDomain: Number(sourceDomain),
+            destinationDomain: Number(destinationDomain),
+            amount: String(amount),
+            sourceDepositor: String(sourceDepositor),
+            destinationRecipient: String(destinationRecipient),
+            maxFee: maxFee != null ? String(maxFee) : undefined,
+        });
+        res.json({ success: true, data: { burnIntent } });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to build burn intent' });
+    }
+});
 
-    ws.on('error', (error: Error) => {
-        sendEvent('status', { state: 'error', message: error.message });
-    });
+/**
+ * POST /api/gateway/transfer
+ * Body: array of { burnIntent, signature } (signed burn intents).
+ */
+router.post('/gateway/transfer', async (req: Request, res: Response) => {
+    try {
+        const body = Array.isArray(req.body) ? req.body : [req.body];
+        const response = await circleGatewayService.transfer(body);
+        res.json({ success: true, data: response });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to transfer via Gateway' });
+    }
+});
 
-    ws.on('close', () => {
-        sendEvent('status', { state: 'disconnected' });
-        res.end();
-    });
+/**
+ * GET /api/bridge/chains
+ */
+router.get('/bridge/chains', async (_req: Request, res: Response) => {
+    try {
+        const chains = bridgeKitService.getSupportedChains();
+        res.json({ success: true, data: chains });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to load Bridge Kit chains' });
+    }
+});
 
-    req.on('close', () => {
-        close();
-    });
+/**
+ * POST /api/bridge/estimate
+ */
+router.post('/bridge/estimate', async (req: Request, res: Response) => {
+    try {
+        const { fromChain, toChain, amount, recipientAddress, config } = req.body;
+        if (!fromChain || !toChain || !amount) {
+            return res.status(400).json({ error: 'Missing required fields: fromChain, toChain, amount' });
+        }
+        const estimate = await bridgeKitService.estimateTransfer({
+            fromChain,
+            toChain,
+            amount,
+            recipientAddress,
+            config,
+        });
+        res.json({ success: true, data: estimate });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to estimate Bridge Kit transfer' });
+    }
+});
+
+/**
+ * POST /api/bridge/transfer
+ */
+router.post('/bridge/transfer', async (req: Request, res: Response) => {
+    try {
+        const { fromChain, toChain, amount, recipientAddress, config } = req.body;
+        if (!fromChain || !toChain || !amount) {
+            return res.status(400).json({ error: 'Missing required fields: fromChain, toChain, amount' });
+        }
+        const result = await bridgeKitService.bridgeTransfer({
+            fromChain,
+            toChain,
+            amount,
+            recipientAddress,
+            config,
+        });
+        res.json({ success: true, data: result });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'Failed to execute Bridge Kit transfer' });
+    }
 });
 
 export default router;

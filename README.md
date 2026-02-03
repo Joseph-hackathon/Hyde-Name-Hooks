@@ -273,6 +273,31 @@ Project code (Arc integration):
 
 ---
 
+## Gateway + Bridge Kit (Post-Settlement Mobility)
+
+Hyde can extend Arc settlements using **Circle Gateway** (unified crosschain USDC balance) and **Bridge Kit**
+(explicit crosschain transfers). These layers sit *after* Arc settlement and make payment-ready USDC usable across
+chains with minimal friction.
+
+Why it helps:
+
+- **Gateway** enables a unified USDC balance across chains with instant access once a balance is established.
+- **Bridge Kit** enables explicit Arc → destination chain transfers with a small, typed SDK surface.
+
+References:
+
+- [Circle Gateway docs](https://developers.circle.com/gateway)
+- [Circle Bridge Kit docs](https://developers.circle.com/bridge-kit)
+
+Project code (Gateway/Bridge Kit integration):
+
+- [Gateway service (backend)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/services/circleGatewayService.ts)
+- [Bridge Kit service (backend)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/services/bridgeKitService.ts)
+- [Gateway/Bridge API routes](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/backend/src/routes/api.ts)
+- [Gateway/Bridge UI (frontend)](https://github.com/Joseph-hackathon/Hyde-Name-Hooks/blob/main/frontend/src/pages/AppPage.tsx)
+
+---
+
 ## Technical Deep Dive
 
 ### Context Scoring Pipeline
@@ -377,21 +402,7 @@ cd ../backend
 npm install
 ```
 
-### 2. Deploy Contracts
-
-```bash
-cd contracts
-
-# Start local Hardhat node
-npx hardhat node
-
-# Deploy (in another terminal)
-npm run deploy:local
-```
-
-Copy the deployed contract addresses.
-
-### 3. Configure Backend
+### 2. Configure Backend
 
 ```bash
 cd backend
@@ -402,7 +413,7 @@ Edit `.env`:
 ```env
 PORT=3001
 SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
-REGISTRY_CONTRACT_ADDRESS=<from deployment>
+REGISTRY_CONTRACT_ADDRESS=<your deployed registry address>
 BACKEND_PRIVATE_KEY=<your backend wallet>
 FRONTEND_URL=http://localhost:5173
 ```
@@ -412,7 +423,7 @@ Start backend:
 npm run dev
 ```
 
-### 4. Run Frontend
+### 3. Run Frontend
 
 ```bash
 cd frontend
@@ -492,28 +503,6 @@ cd frontend
 npm test
 ```
 
-## Deployment
-
-### Testnet (Sepolia)
-```bash
-cd contracts
-npm run deploy:sepolia
-```
-
-### Backend
-```bash
-cd backend
-npm run build
-npm start
-```
-
-### Frontend
-```bash
-cd frontend
-npm run build
-# Deploy /dist to Vercel, Netlify, etc.
-```
-
 ## Security Considerations
 
 - ✅ Tier storage uses hashed ENS names for privacy
@@ -525,7 +514,6 @@ npm run build
 
 ## Roadmap
 
-- [ ] Deploy to Sepolia testnet
 - [ ] Complete Uniswap v4 Hook integration
 - [ ] Implement zkProofs for tier verification
 - [ ] Add liquidity incentives for privacy pools

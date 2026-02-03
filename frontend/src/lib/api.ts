@@ -131,3 +131,118 @@ export async function getArcSettlementStatus(transactionId: string) {
     errorReason?: string;
   }>(`/api/arc/settlement/${transactionId}`);
 }
+
+export async function getGatewayInfo() {
+  return request<Record<string, unknown>>('/api/gateway/info');
+}
+
+export async function getGatewayDomains() {
+  return request<Array<{ domain: number; name: string }>>('/api/gateway/domains');
+}
+
+export type BurnIntentMessage = {
+  maxBlockHeight: string;
+  maxFee: string;
+  spec: {
+    version: number;
+    sourceDomain: number;
+    destinationDomain: number;
+    sourceContract: string;
+    destinationContract: string;
+    sourceToken: string;
+    destinationToken: string;
+    sourceDepositor: string;
+    destinationRecipient: string;
+    sourceSigner: string;
+    destinationCaller: string;
+    value: string;
+    salt: string;
+    hookData: string;
+  };
+};
+
+export async function buildBurnIntent(payload: {
+  sourceDomain: number;
+  destinationDomain: number;
+  amount: string;
+  sourceDepositor: string;
+  destinationRecipient: string;
+  maxFee?: string;
+}) {
+  return request<{ burnIntent: BurnIntentMessage }>('/api/gateway/build-burn-intent', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getGatewayBalances(payload: {
+  token: string;
+  depositor: string;
+  domains?: number[];
+}) {
+  return request<{
+    balances: Array<{
+      domain: number;
+      balance: string;
+    }>;
+  }>('/api/gateway/balances', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/** Submit signed burn intents: array of { burnIntent, signature } */
+export async function transferGatewayBalance(requests: Array<{ burnIntent: BurnIntentMessage; signature: string }>) {
+  return request<{
+    transferId?: string;
+    attestation?: string;
+    signature?: string;
+    fees?: { total?: string; token?: string; perIntent?: unknown[] };
+    expirationBlock?: string;
+  }>('/api/gateway/transfer', {
+    method: 'POST',
+    body: JSON.stringify(requests),
+  });
+}
+
+export async function getBridgeChains() {
+  return request<Array<{
+    chain: string;
+    name: string;
+    type: string;
+    chainId?: number;
+    usdcAddress?: string;
+  }>>('/api/bridge/chains');
+}
+
+export async function estimateBridgeTransfer(payload: {
+  fromChain: string;
+  toChain: string;
+  amount: string;
+  recipientAddress?: string;
+  config?: {
+    transferSpeed?: 'FAST' | 'SLOW';
+    maxFee?: string;
+  };
+}) {
+  return request<Record<string, unknown>>('/api/bridge/estimate', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function executeBridgeTransfer(payload: {
+  fromChain: string;
+  toChain: string;
+  amount: string;
+  recipientAddress?: string;
+  config?: {
+    transferSpeed?: 'FAST' | 'SLOW';
+    maxFee?: string;
+  };
+}) {
+  return request<Record<string, unknown>>('/api/bridge/transfer', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
