@@ -1,5 +1,6 @@
 import { BridgeKit } from '@circle-fin/bridge-kit';
-import type { BridgeConfig, BridgeDestination, BridgeParams, BridgeResult, ChainDefinition, EstimateResult } from '@circle-fin/bridge-kit';
+import type { BridgeConfig, BridgeParams, BridgeResult, ChainDefinition, EstimateResult } from '@circle-fin/bridge-kit';
+import type { BridgeChainIdentifier } from '@circle-fin/bridge-kit';
 import { createCircleWalletsAdapter } from '@circle-fin/adapter-circle-wallets';
 
 export type BridgeKitTransferRequest = {
@@ -45,13 +46,15 @@ export class BridgeKitService {
             entitySecret,
         });
 
-        const destination: BridgeDestination = request.recipientAddress
-            ? { adapter, chain: request.toChain, recipientAddress: request.recipientAddress }
-            : { adapter, chain: request.toChain };
+        const fromChain = request.fromChain as BridgeChainIdentifier;
+        const toChain = request.toChain as BridgeChainIdentifier;
+        const to = request.recipientAddress
+            ? { adapter, chain: toChain, recipientAddress: request.recipientAddress }
+            : { adapter, chain: toChain };
 
         return {
-            from: { adapter, chain: request.fromChain },
-            to: destination,
+            from: { adapter, chain: fromChain },
+            to,
             amount: request.amount,
             token: 'USDC',
             config: request.config,

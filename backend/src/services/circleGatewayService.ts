@@ -78,10 +78,11 @@ export class CircleGatewayService {
                 domain,
             })),
         };
-        return this.request('/balances', {
+        const result = await this.request<GatewayBalancesResponse>('/balances', {
             method: 'POST',
             body: payload,
         });
+        return result;
     }
 
     async transfer(payload: unknown) {
@@ -140,7 +141,7 @@ export class CircleGatewayService {
         ];
     }
 
-    private async request(path: string, options: { method: 'GET' | 'POST'; body?: unknown }) {
+    private async request<T = unknown>(path: string, options: { method: 'GET' | 'POST'; body?: unknown }): Promise<T> {
         const response = await fetch(`${this.apiBase}${path}`, {
             method: options.method,
             headers: {
@@ -151,11 +152,11 @@ export class CircleGatewayService {
             ) : undefined,
         });
 
-        const data = await response.json();
+        const data = (await response.json()) as Record<string, unknown>;
         if (!response.ok) {
-            const message = data?.message || data?.error || 'Gateway request failed';
+            const message = (data?.message as string) || (data?.error as string) || 'Gateway request failed';
             throw new Error(message);
         }
-        return data;
+        return data as T;
     }
 }
