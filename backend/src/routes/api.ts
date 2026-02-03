@@ -433,7 +433,8 @@ router.post('/bridge/estimate', async (req: Request, res: Response) => {
     } catch (error: any) {
         const msg = error?.message || 'Failed to estimate Bridge Kit transfer';
         const isRpcBalance = /native balance|RPC error|unknown RPC error/i.test(msg);
-        const sourceLabel = fromChain ? `Source chain (${fromChain})` : 'Source chain';
+        const from = req.body?.fromChain;
+        const sourceLabel = from ? `Source chain (${from})` : 'Source chain';
         res.status(400).json({
             error: isRpcBalance
                 ? `${sourceLabel} RPC may be unstable or your wallet has no native token on that chain for gas. Use as source a chain where you hold native token (e.g. Ethereum Sepolia if you have Sepolia ETH), then retry.`
@@ -463,7 +464,8 @@ router.post('/bridge/transfer', async (req: Request, res: Response) => {
     } catch (error: any) {
         const msg = error?.message || 'Failed to execute Bridge Kit transfer';
         const isRpcBalance = /native balance|RPC error|unknown RPC error/i.test(msg);
-        const sourceLabel = fromChain ? `Source chain (${fromChain})` : 'Source chain';
+        const from = req.body?.fromChain;
+        const sourceLabel = from ? `Source chain (${from})` : 'Source chain';
         res.status(400).json({
             error: isRpcBalance
                 ? `${sourceLabel} RPC may be unstable or your wallet has no native token on that chain for gas. Use as source a chain where you hold native token (e.g. Ethereum Sepolia if you have Sepolia ETH), then retry.`
