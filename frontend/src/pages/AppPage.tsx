@@ -17,9 +17,8 @@ import {
     transferGatewayBalance,
     getBridgeChains,
     getBridgeSourceBalance,
-    estimateBridgeTransfer,
-    executeBridgeTransfer,
 } from '../lib/api';
+import { estimateBridgeInBrowser, executeBridgeInBrowser } from '../lib/bridgeKitBrowser';
 import type { BurnIntentMessage } from '../lib/api';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -462,11 +461,10 @@ export default function AppPage() {
         setBridgeStatus('estimating');
         setBridgeError(null);
         try {
-            const result = await estimateBridgeTransfer({
+            const result = await estimateBridgeInBrowser({
                 fromChain: bridgeFromChain,
                 toChain: bridgeToChain,
                 amount: bridgeAmount,
-                address,
                 config: {
                     transferSpeed: bridgeSpeed,
                     maxFee: bridgeMaxFee || undefined,
@@ -474,9 +472,9 @@ export default function AppPage() {
             });
             setBridgeEstimate(result);
             setBridgeStatus('idle');
-        } catch (error: any) {
+        } catch (error: unknown) {
             setBridgeStatus('error');
-            setBridgeError(error?.message || 'Failed to estimate bridge transfer.');
+            setBridgeError(error instanceof Error ? error.message : 'Failed to estimate bridge transfer.');
         }
     };
 
@@ -492,11 +490,10 @@ export default function AppPage() {
         setBridgeStatus('bridging');
         setBridgeError(null);
         try {
-            const result = await executeBridgeTransfer({
+            const result = await executeBridgeInBrowser({
                 fromChain: bridgeFromChain,
                 toChain: bridgeToChain,
                 amount: bridgeAmount,
-                address,
                 config: {
                     transferSpeed: bridgeSpeed,
                     maxFee: bridgeMaxFee || undefined,
@@ -504,9 +501,9 @@ export default function AppPage() {
             });
             setBridgeResult(result);
             setBridgeStatus('success');
-        } catch (error: any) {
+        } catch (error: unknown) {
             setBridgeStatus('error');
-            setBridgeError(error?.message || 'Bridge transfer failed.');
+            setBridgeError(error instanceof Error ? error.message : 'Bridge transfer failed.');
         }
     };
 
@@ -1257,8 +1254,8 @@ export default function AppPage() {
                                             {bridgeError && (
                                                 <div className="space-y-1 text-[0.65rem] text-amber-700">
                                                     <div>{bridgeError}</div>
-                                                    {/RPC|balance|retry|native token/i.test(bridgeError) && (
-                                                        <div className="text-slate-600">Click Estimate or Bridge again in a few seconds to retry.</div>
+                                                    {/No wallet provider|MetaMask|injected/i.test(bridgeError) && (
+                                                        <div className="text-slate-600">Connect MetaMask or another injected wallet to use Bridge Kit.</div>
                                                     )}
                                                 </div>
                                             )}

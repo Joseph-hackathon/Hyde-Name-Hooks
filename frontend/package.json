@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@circle-fin/adapter-viem-v2": "^1.4.0",
+    "@circle-fin/bridge-kit": "^1.5.0",
     "@fontsource/fredoka": "^5.2.10",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",

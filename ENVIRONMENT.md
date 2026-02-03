@@ -35,6 +35,15 @@ ARC_TRANSFER_FEE_LEVEL=MEDIUM
 # Circle Gateway (optional)
 CIRCLE_GATEWAY_API_BASE=https://gateway-api-testnet.circle.com/v1
 
+# Bridge Kit: optional viem adapter (custom RPC, more stable than default Circle Wallets RPC)
+# See: https://developers.circle.com/bridge-kit/quickstarts/transfer-usdc-from-arc-to-base
+# BRIDGE_USE_VIEM_ADAPTER=true
+# BRIDGE_PRIVATE_KEY=0x...   # or reuse BACKEND_PRIVATE_KEY
+# RPCs used when viem adapter is enabled (map chain -> URL):
+# SEPOLIA_RPC_URL=...
+# BASE_SEPOLIA_RPC_URL=...
+# ARC_TESTNET_RPC_URL=...
+
 # Optional: additional chain RPCs for future expansion
 BASE_SEPOLIA_RPC_URL=https://base-sepolia.g.alchemy.com/v2/YOUR_KEY
 UNICHAIN_SEPOLIA_RPC_URL=https://unichain-sepolia.g.alchemy.com/v2/YOUR_KEY
