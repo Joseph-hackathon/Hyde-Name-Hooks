@@ -215,6 +215,11 @@ export async function getBridgeChains() {
   }>>('/api/bridge/chains');
 }
 
+export async function getBridgeSourceBalance(chain: string, address: string) {
+  const params = new URLSearchParams({ chain, address });
+  return request<{ balance: string; symbol: string }>(`/api/bridge/source-balance?${params}`);
+}
+
 export async function estimateBridgeTransfer(payload: {
   fromChain: string;
   toChain: string;

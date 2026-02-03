@@ -16,6 +16,7 @@ import {
     buildBurnIntent,
     transferGatewayBalance,
     getBridgeChains,
+    getBridgeSourceBalance,
     estimateBridgeTransfer,
     executeBridgeTransfer,
 } from '../lib/api';
@@ -96,6 +97,8 @@ export default function AppPage() {
     const [bridgeError, setBridgeError] = useState<string | null>(null);
     const [bridgeEstimate, setBridgeEstimate] = useState<Record<string, unknown> | null>(null);
     const [bridgeResult, setBridgeResult] = useState<Record<string, unknown> | null>(null);
+    const [sourceBalance, setSourceBalance] = useState<string | null>(null);
+    const [sourceBalanceLoading, setSourceBalanceLoading] = useState(false);
 
     const [gatewayDomains, setGatewayDomains] = useState<Array<{ domain: number; name: string }>>([]);
     const [gatewaySourceDomain, setGatewaySourceDomain] = useState<number>(0);
@@ -289,6 +292,28 @@ export default function AppPage() {
             setBridgeAmount(receiveAmount);
         }
     }, [settlementResult?.usdcAmount, receiveAmount, receiveToken]);
+
+    useEffect(() => {
+        if (!address || !bridgeFromChain || !/Ethereum_Sepolia|Ethereum Sepolia/i.test(bridgeFromChain)) {
+            setSourceBalance(null);
+            return;
+        }
+        let active = true;
+        setSourceBalanceLoading(true);
+        getBridgeSourceBalance(bridgeFromChain, address)
+            .then((data) => {
+                if (active) setSourceBalance(data.balance);
+            })
+            .catch(() => {
+                if (active) setSourceBalance(null);
+            })
+            .finally(() => {
+                if (active) setSourceBalanceLoading(false);
+            });
+        return () => {
+            active = false;
+        };
+    }, [address, bridgeFromChain]);
 
     const handleSwitch = () => {
         setPayToken(receiveToken);
@@ -1097,6 +1122,25 @@ export default function AppPage() {
                                         <p className="mt-1 text-[0.65rem] text-slate-500">
                                             Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. Use as <strong>source</strong> the chain where your wallet has native token for gas (e.g. Ethereum Sepolia if you have Sepolia ETH). Balance is checked on the source chain only.
                                         </p>
+                                        {address && /Ethereum_Sepolia|Ethereum Sepolia/i.test(bridgeFromChain) && (
+                                            <div className="mt-2 text-[0.65rem]">
+                                                {sourceBalanceLoading ? (
+                                                    <span className="text-slate-500">Checking source balance…</span>
+                                                ) : sourceBalance !== null ? (
+                                                    <>
+                                                        <span className="text-slate-600">Source balance: <strong>{Number(sourceBalance).toFixed(4)} ETH</strong></span>
+                                                        {Number(sourceBalance) < 0.001 && (
+                                                            <div className="mt-1 text-amber-700">
+                                                                No gas on source chain. Get Sepolia ETH from a faucet first:{' '}
+                                                                <a href="https://www.alchemy.com/faucets/ethereum-sepolia" target="_blank" rel="noopener noreferrer" className="underline">Alchemy</a>
+                                                                {' · '}
+                                                                <a href="https://sepoliafaucet.com" target="_blank" rel="noopener noreferrer" className="underline">sepoliafaucet.com</a>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                ) : null}
+                                            </div>
+                                        )}
                                         <div className="mt-2 grid gap-2">
                                             <div className="flex items-center gap-2">
                                                 <select

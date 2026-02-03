@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { JsonRpcProvider, formatEther } from 'ethers';
 import { ENSContextService } from '../services/ensContextService';
 import { ContractService } from '../services/contractService';
 import { ArcSettlementService } from '../services/arcSettlementService';
@@ -397,6 +398,34 @@ router.post('/gateway/transfer', async (req: Request, res: Response) => {
         res.json({ success: true, data: response });
     } catch (error: any) {
         res.status(400).json({ error: error.message || 'Failed to transfer via Gateway' });
+    }
+});
+
+/**
+ * GET /api/bridge/source-balance?chain=Ethereum_Sepolia&address=0x...
+ * Returns native token balance on the source chain (for gas). Uses backend RPC when available.
+ */
+router.get('/bridge/source-balance', async (req: Request, res: Response) => {
+    try {
+        const chain = req.query.chain as string;
+        const address = req.query.address as string;
+        if (!chain || !address || !address.startsWith('0x')) {
+            return res.status(400).json({ error: 'Missing chain or address (0x...)' });
+        }
+        const isSepolia = /Ethereum_Sepolia|Ethereum Sepolia/i.test(chain);
+        const rpc = process.env.SEPOLIA_RPC_URL;
+        if (!isSepolia || !rpc) {
+            return res.status(400).json({
+                error: 'Source balance check is only supported for Ethereum Sepolia when SEPOLIA_RPC_URL is set.',
+                balance: null,
+            });
+        }
+        const provider = new JsonRpcProvider(rpc);
+        const balanceWei = await provider.getBalance(address);
+        const balanceEth = formatEther(balanceWei);
+        res.json({ success: true, data: { balance: balanceEth, symbol: 'ETH' } });
+    } catch (error: any) {
+        res.status(500).json({ error: error?.message || 'Failed to get source balance' });
     }
 });
 
