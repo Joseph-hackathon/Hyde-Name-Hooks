@@ -756,6 +756,19 @@ export default function AppPage() {
 
                         <div className="mt-4 space-y-3">
                             <div className="flex flex-col gap-2">
+                                <label className="text-xs text-slate-500">Expected USDC amount (required)</label>
+                                <input
+                                    type="text"
+                                    value={expectedReceiveAmount}
+                                    onChange={(e) => setExpectedReceiveAmount(e.target.value)}
+                                    placeholder="e.g. 10.50 (from Uniswap quote)"
+                                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
+                                />
+                                <p className="text-[0.65rem] text-slate-400">
+                                    Enter the USDC amount you expect from the swap. Settlement will use this.
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-2">
                                 <div className="flex items-center justify-between">
                                     <label className="text-xs text-slate-500">Swap tx hash (optional)</label>
                                     <button
@@ -774,12 +787,6 @@ export default function AppPage() {
                                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
                                 />
                             </div>
-                            <div className="flex items-center justify-between text-xs text-slate-500">
-                                <span>Arc output</span>
-                                <span className="font-semibold text-brand-dark">
-                                    {receiveToken === 'USDC' && receiveAmount ? `${receiveAmount} USDC` : 'USDC required'}
-                                </span>
-                            </div>
                             <Button
                                 variant="outline"
                                 className="w-full"
@@ -794,6 +801,12 @@ export default function AppPage() {
                             <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
                                 {settlementError}
                             </div>
+                        )}
+
+                        {!settlementResult && (
+                            <p className="mt-3 text-[0.65rem] text-slate-400">
+                                After settlement succeeds, Gateway (unified balance, burn intent transfer) and Bridge Kit transfer appear below.
+                            </p>
                         )}
 
                         {settlementStatus === 'success' && settlementResult && (
