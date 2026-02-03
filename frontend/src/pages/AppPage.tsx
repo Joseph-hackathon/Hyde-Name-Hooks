@@ -351,16 +351,21 @@ export default function AppPage() {
             setSettlementError('Connect your wallet to settle on Arc.');
             return;
         }
-        const usdcOutputAmount = payToken === 'USDC' ? (payAmount?.trim() || '') : receiveAmount;
-        const isValidUsdc = usdcOutputAmount && !Number.isNaN(Number(usdcOutputAmount)) && Number(usdcOutputAmount) > 0;
-        if (payToken !== 'USDC' && receiveToken !== 'USDC') {
+        // Arc settlement finalizes the USDC you *receive* from the swap (output = USDC only).
+        if (receiveToken !== 'USDC') {
             setSettlementStatus('error');
-            setSettlementError('Arc settlement requires USDC. Set Pay or Receive to USDC.');
+            setSettlementError(
+                'Arc settlement finalizes the USDC you receive from the swap. Your swap currently receives ' +
+                    receiveToken +
+                    ', not USDC. Set Receive to USDC (e.g. swap ETH → USDC) to use Arc settlement.'
+            );
             return;
         }
+        const usdcOutputAmount = receiveAmount;
+        const isValidUsdc = usdcOutputAmount && !Number.isNaN(Number(usdcOutputAmount)) && Number(usdcOutputAmount) > 0;
         if (!isValidUsdc) {
             setSettlementStatus('error');
-            setSettlementError('Enter expected USDC amount (in Pay if paying USDC, or in Receive if receiving USDC).');
+            setSettlementError('Enter expected USDC amount (the amount you receive from the swap).');
             return;
         }
 
@@ -421,6 +426,10 @@ export default function AppPage() {
     };
 
     const handleBridgeEstimate = async () => {
+        if (!address) {
+            setBridgeError('Connect your wallet first.');
+            return;
+        }
         if (!bridgeFromChain || !bridgeToChain || !bridgeAmount) {
             setBridgeError('Select chains and amount first.');
             return;
@@ -432,6 +441,7 @@ export default function AppPage() {
                 fromChain: bridgeFromChain,
                 toChain: bridgeToChain,
                 amount: bridgeAmount,
+                address,
                 config: {
                     transferSpeed: bridgeSpeed,
                     maxFee: bridgeMaxFee || undefined,
@@ -446,6 +456,10 @@ export default function AppPage() {
     };
 
     const handleBridgeTransfer = async () => {
+        if (!address) {
+            setBridgeError('Connect your wallet first.');
+            return;
+        }
         if (!bridgeFromChain || !bridgeToChain || !bridgeAmount) {
             setBridgeError('Select chains and amount first.');
             return;
@@ -457,6 +471,7 @@ export default function AppPage() {
                 fromChain: bridgeFromChain,
                 toChain: bridgeToChain,
                 amount: bridgeAmount,
+                address,
                 config: {
                     transferSpeed: bridgeSpeed,
                     maxFee: bridgeMaxFee || undefined,
@@ -791,6 +806,11 @@ export default function AppPage() {
                                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
                                 />
                             </div>
+                            {receiveToken !== 'USDC' && (
+                                <p className="text-[0.65rem] text-amber-700">
+                                    Arc settlement finalizes the USDC you <strong>receive</strong> from the swap. Set Receive to USDC (e.g. swap ETH → USDC) to use it.
+                                </p>
+                            )}
                             <Button
                                 variant="outline"
                                 className="w-full"

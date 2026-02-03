@@ -219,6 +219,8 @@ export async function estimateBridgeTransfer(payload: {
   fromChain: string;
   toChain: string;
   amount: string;
+  /** Wallet address (required for developer-controlled adapters). */
+  address?: string;
   recipientAddress?: string;
   config?: {
     transferSpeed?: 'FAST' | 'SLOW';
@@ -235,6 +237,8 @@ export async function executeBridgeTransfer(payload: {
   fromChain: string;
   toChain: string;
   amount: string;
+  /** Wallet address (required for developer-controlled adapters). */
+  address?: string;
   recipientAddress?: string;
   config?: {
     transferSpeed?: 'FAST' | 'SLOW';

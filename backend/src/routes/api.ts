@@ -416,7 +416,7 @@ router.get('/bridge/chains', async (_req: Request, res: Response) => {
  */
 router.post('/bridge/estimate', async (req: Request, res: Response) => {
     try {
-        const { fromChain, toChain, amount, recipientAddress, config } = req.body;
+        const { fromChain, toChain, amount, address, recipientAddress, config } = req.body;
         if (!fromChain || !toChain || !amount) {
             return res.status(400).json({ error: 'Missing required fields: fromChain, toChain, amount' });
         }
@@ -424,6 +424,7 @@ router.post('/bridge/estimate', async (req: Request, res: Response) => {
             fromChain,
             toChain,
             amount,
+            address,
             recipientAddress,
             config,
         });
@@ -438,7 +439,7 @@ router.post('/bridge/estimate', async (req: Request, res: Response) => {
  */
 router.post('/bridge/transfer', async (req: Request, res: Response) => {
     try {
-        const { fromChain, toChain, amount, recipientAddress, config } = req.body;
+        const { fromChain, toChain, amount, address, recipientAddress, config } = req.body;
         if (!fromChain || !toChain || !amount) {
             return res.status(400).json({ error: 'Missing required fields: fromChain, toChain, amount' });
         }
@@ -446,6 +447,7 @@ router.post('/bridge/transfer', async (req: Request, res: Response) => {
             fromChain,
             toChain,
             amount,
+            address,
             recipientAddress,
             config,
         });

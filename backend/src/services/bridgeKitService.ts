@@ -7,6 +7,9 @@ export type BridgeKitTransferRequest = {
     fromChain: string;
     toChain: string;
     amount: string;
+    /** Source chain wallet address (required for developer-controlled adapters). */
+    address?: string;
+    /** Destination chain recipient; defaults to same as address if omitted. */
     recipientAddress?: string;
     config?: BridgeConfig;
 };
@@ -48,13 +51,15 @@ export class BridgeKitService {
 
         const fromChain = request.fromChain as BridgeChainIdentifier;
         const toChain = request.toChain as BridgeChainIdentifier;
-        const to = request.recipientAddress
-            ? { adapter, chain: toChain, recipientAddress: request.recipientAddress }
-            : { adapter, chain: toChain };
+        const sourceAddress = request.address || request.recipientAddress;
+        if (!sourceAddress || !sourceAddress.startsWith('0x')) {
+            throw new Error('Address is required in context for developer-controlled adapters. Please provide: { adapter, chain, address: "0x..." }');
+        }
+        const destAddress = request.recipientAddress || sourceAddress;
 
         return {
-            from: { adapter, chain: fromChain },
-            to,
+            from: { adapter, chain: fromChain, address: sourceAddress },
+            to: { adapter, chain: toChain, address: destAddress },
             amount: request.amount,
             token: 'USDC',
             config: request.config,
