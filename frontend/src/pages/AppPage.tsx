@@ -1356,127 +1356,127 @@ export default function AppPage() {
                                     </div>
                                 </div>
                             )}
+                        </motion.div>
+
+                        {/* Sidebar Info */}
+                        <div className="space-y-6">
+                            {/* Context Score Card */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="gsap-reveal ens-card p-6 relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Activity className="w-32 h-32" />
+                                </div>
+                                <h3 className="text-lg font-bold text-brand-dark mb-1">Your tier</h3>
+                                <div className="text-4xl font-display font-black text-brand-dark mb-2">
+                                    {contextScore ? tier : 'Not Claimed'}
+                                </div>
+                                {contextScore ? (
+                                    <div className="inline-block bg-white/50 px-3 py-1 rounded-full text-xs font-bold text-brand-dark">
+                                        Score: {contextScore}
+                                    </div>
+                                ) : (
+                                    <Link to="/verify">
+                                        <Button size="sm" className="mt-2">Claim Context</Button>
+                                    </Link>
+                                )}
+                            </motion.div>
+
+                            {/* Study: Step 1 Swap */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="gsap-reveal ens-card p-6 border border-indigo-50"
+                            >
+                                <h3 className="text-sm font-bold text-brand-dark mb-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-4 bg-brand-blue rounded-full" />
+                                    Step 1: Selective Disclosure Swap
+                                </h3>
+                                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                                    Your swap is executed via a <strong>Uniswap v4 Hook</strong>. Unlike public swaps, Hyde verifies your
+                                    ENS tier without revealing your wallet's full history or score to the market.
+                                </p>
+                                <div className="space-y-3">
+                                    <div className="flex items-start gap-2 text-xs">
+                                        <Shield className="w-3.5 h-3.5 text-brand-blue mt-0.5" />
+                                        <span className="text-slate-600"><strong>Privacy Gate:</strong> Hook checks if you meet the Pool's tier requirement.</span>
+                                    </div>
+                                    <div className="flex items-start gap-2 text-xs">
+                                        <Activity className="w-3.5 h-3.5 text-brand-blue mt-0.5" />
+                                        <span className="text-slate-600"><strong>Intent Shield:</strong> Your swap intention is anchored to your ENS name, not raw metadata.</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Study: Step 2 Settlement */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="gsap-reveal ens-card p-6 border border-blue-50"
+                            >
+                                <h3 className="text-sm font-bold text-brand-dark mb-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-4 bg-brand-blue rounded-full" />
+                                    Step 2: Arc Settlement
+                                </h3>
+                                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                                    After swapping, your USDC is settled onto the <strong>Arc Unified Balance</strong>.
+                                    This creates a payment-ready state that works seamlessly across all Circle-enabled domains.
+                                </p>
+                                <ul className="text-[0.65rem] text-slate-500 space-y-2 list-disc pl-4">
+                                    <li><strong>Bridge Ready:</strong> Finalized USDC can be instantly moved to other chains via Bridge Kit.</li>
+                                    <li><strong>Compliance-First:</strong> Arc layer handles the messy bridge finality, leaving you with liquid USDC.</li>
+                                    <li><strong>Unified State:</strong> Your ENS profile tracks this balance globally across testnets.</li>
+                                </ul>
+                            </motion.div>
+                        </div>
                     </div>
-                </motion.div>
 
-                {/* Sidebar Info */}
-                <div className="space-y-6">
-                    {/* Context Score Card */}
                     <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="gsap-reveal ens-card p-6 relative overflow-hidden"
-                    >
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Activity className="w-32 h-32" />
-                        </div>
-                        <h3 className="text-lg font-bold text-brand-dark mb-1">Your tier</h3>
-                        <div className="text-4xl font-display font-black text-brand-dark mb-2">
-                            {contextScore ? tier : 'Not Claimed'}
-                        </div>
-                        {contextScore ? (
-                            <div className="inline-block bg-white/50 px-3 py-1 rounded-full text-xs font-bold text-brand-dark">
-                                Score: {contextScore}
-                            </div>
-                        ) : (
-                            <Link to="/verify">
-                                <Button size="sm" className="mt-2">Claim Context</Button>
-                            </Link>
-                        )}
-                    </motion.div>
-
-                    {/* Study: Step 1 Swap */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="gsap-reveal ens-card p-6 border border-indigo-50"
+                        className="gsap-reveal max-w-6xl mx-auto mt-10 ens-card ens-glass p-8"
                     >
-                        <h3 className="text-sm font-bold text-brand-dark mb-3 flex items-center gap-2">
-                            <div className="w-1.5 h-4 bg-brand-blue rounded-full" />
-                            Step 1: Selective Disclosure Swap
-                        </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                            Your swap is executed via a <strong>Uniswap v4 Hook</strong>. Unlike public swaps, Hyde verifies your
-                            ENS tier without revealing your wallet's full history or score to the market.
-                        </p>
-                        <div className="space-y-3">
-                            <div className="flex items-start gap-2 text-xs">
-                                <Shield className="w-3.5 h-3.5 text-brand-blue mt-0.5" />
-                                <span className="text-slate-600"><strong>Privacy Gate:</strong> Hook checks if you meet the Pool's tier requirement.</span>
+                        <div className="flex flex-col gap-2 mb-6">
+                            <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Hook Notes</p>
+                            <h2 className="text-2xl font-display font-bold text-brand-dark">
+                                How the hook works
+                            </h2>
+                            <p className="text-sm text-slate-600">
+                                Hyde plugs into swap execution as a v4 Hook so DeFi integrators can add tier-gated privacy
+                                without changing their frontends or liquidity sources.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
+                            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                                <h4 className="font-semibold text-brand-dark mb-3">Flow</h4>
+                                <ul className="space-y-2">
+                                    <li>1. ENS ownership verified by backend scoring.</li>
+                                    <li>2. Tier registered onchain in the registry contract.</li>
+                                    <li>3. Hook checks tier + cooldown before swap execution.</li>
+                                    <li>4. Swap routes through existing pools with privacy gates.</li>
+                                    <li>5. Arc settles swap output into USDC for payment-ready balance.</li>
+                                </ul>
                             </div>
-                            <div className="flex items-start gap-2 text-xs">
-                                <Activity className="w-3.5 h-3.5 text-brand-blue mt-0.5" />
-                                <span className="text-slate-600"><strong>Intent Shield:</strong> Your swap intention is anchored to your ENS name, not raw metadata.</span>
+                            <div className="bg-white rounded-2xl p-5 border border-slate-100">
+                                <h4 className="font-semibold text-brand-dark mb-3">Integrator wins</h4>
+                                <ul className="space-y-2">
+                                    <li>Lower MEV exposure via tier gating and cooldowns.</li>
+                                    <li>Portable ENS identity across chains and apps.</li>
+                                    <li>No new liquidity bootstrap—use existing Uniswap pools.</li>
+                                    <li>Composable with wallet, router, and analytics layers.</li>
+                                </ul>
                             </div>
                         </div>
-                    </motion.div>
-
-                    {/* Study: Step 2 Settlement */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="gsap-reveal ens-card p-6 border border-blue-50"
-                    >
-                        <h3 className="text-sm font-bold text-brand-dark mb-3 flex items-center gap-2">
-                            <div className="w-1.5 h-4 bg-brand-blue rounded-full" />
-                            Step 2: Arc Settlement
-                        </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                            After swapping, your USDC is settled onto the <strong>Arc Unified Balance</strong>.
-                            This creates a payment-ready state that works seamlessly across all Circle-enabled domains.
-                        </p>
-                        <ul className="text-[0.65rem] text-slate-500 space-y-2 list-disc pl-4">
-                            <li><strong>Bridge Ready:</strong> Finalized USDC can be instantly moved to other chains via Bridge Kit.</li>
-                            <li><strong>Compliance-First:</strong> Arc layer handles the messy bridge finality, leaving you with liquid USDC.</li>
-                            <li><strong>Unified State:</strong> Your ENS profile tracks this balance globally across testnets.</li>
-                        </ul>
                     </motion.div>
                 </div>
             </div>
-
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="gsap-reveal max-w-6xl mx-auto mt-10 ens-card ens-glass p-8"
-            >
-                <div className="flex flex-col gap-2 mb-6">
-                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Hook Notes</p>
-                    <h2 className="text-2xl font-display font-bold text-brand-dark">
-                        How the hook works
-                    </h2>
-                    <p className="text-sm text-slate-600">
-                        Hyde plugs into swap execution as a v4 Hook so DeFi integrators can add tier-gated privacy
-                        without changing their frontends or liquidity sources.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
-                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                        <h4 className="font-semibold text-brand-dark mb-3">Flow</h4>
-                        <ul className="space-y-2">
-                            <li>1. ENS ownership verified by backend scoring.</li>
-                            <li>2. Tier registered onchain in the registry contract.</li>
-                            <li>3. Hook checks tier + cooldown before swap execution.</li>
-                            <li>4. Swap routes through existing pools with privacy gates.</li>
-                            <li>5. Arc settles swap output into USDC for payment-ready balance.</li>
-                        </ul>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 border border-slate-100">
-                        <h4 className="font-semibold text-brand-dark mb-3">Integrator wins</h4>
-                        <ul className="space-y-2">
-                            <li>Lower MEV exposure via tier gating and cooldowns.</li>
-                            <li>Portable ENS identity across chains and apps.</li>
-                            <li>No new liquidity bootstrap—use existing Uniswap pools.</li>
-                            <li>Composable with wallet, router, and analytics layers.</li>
-                        </ul>
-                    </div>
-                </div>
-            </motion.div>
-        </div >
             <Modal
                 isOpen={isHelpOpen}
                 onClose={() => setIsHelpOpen(false)}
