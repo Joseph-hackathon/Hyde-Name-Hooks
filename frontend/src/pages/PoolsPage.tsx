@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Shield, TrendingUp, ExternalLink } from 'lucide-react';
+import { Lock, Shield, TrendingUp, ExternalLink, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import Button from '../components/ui/Button';
@@ -48,9 +48,9 @@ const MOCK_POOLS: Pool[] = [
     },
     {
         id: '3',
-        name: 'USDC/USDT',
-        token0: 'USDC',
-        token1: 'USDT',
+        name: 'ETH/USDC (Open)',
+        token0: 'ETH',
+        token1: 'USDC',
         tvl: '$15.2M',
         apr: '4.5%',
         minScore: 0,
@@ -77,6 +77,15 @@ export default function PoolsPage() {
     const { contextScore, address, isConnected, ensName, tierName } = useWallet();
     const [filter, setFilter] = React.useState<'all' | 'privacy' | 'open'>('all');
     const [accessMap, setAccessMap] = React.useState<Record<string, boolean>>({});
+    const [claimResult, setClaimResult] = React.useState<any>(null);
+
+    useEffect(() => {
+        if (!address) return;
+        const stored = localStorage.getItem(`hyde_claim_result_${address.toLowerCase()}`);
+        if (stored) {
+            try { setClaimResult(JSON.parse(stored)); } catch { }
+        }
+    }, [address]);
 
     const filteredPools = MOCK_POOLS.filter(pool => {
         if (filter === 'privacy') return pool.isGated;
@@ -166,9 +175,97 @@ export default function PoolsPage() {
                     </p>
                 </motion.div>
 
+                {/* Info Section - Moved to Top */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="mb-10 bg-gradient-to-br from-indigo-50/50 to-blue-50/50 rounded-[2rem] p-6 border border-slate-100/50"
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <Lock className="w-5 h-5 text-brand-blue" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-brand-dark text-sm mb-1">Selective proof</h3>
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    Only verified tier members can trade. Prove eligibility without revealing your full history.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <Shield className="w-5 h-5 text-brand-blue" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-brand-dark text-sm mb-1">MEV shield</h3>
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    Tier gating and execution privacy drastically reduce sandwich attacks and toxic flow.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <TrendingUp className="w-5 h-5 text-brand-blue" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-brand-dark text-sm mb-1">LP upside</h3>
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    LPs earn more from reduced adverse selection and consistent volume from trusted traders.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Verification Status Card */}
+                {(contextScore !== null || claimResult) && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-8 ens-card p-6 border border-emerald-100/80 bg-emerald-50/20"
+                    >
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-6 h-6 text-emerald-600" />
+                                </div>
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-emerald-600 font-bold mb-0.5">Verified Identity</p>
+                                    <h3 className="text-2xl font-display font-bold text-brand-dark">
+                                        {ensName || claimResult?.ensName || 'Verified User'}
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div>
+                                    <p className="text-[0.65rem] uppercase tracking-wider text-slate-500 mb-1">Current Tier</p>
+                                    <p className="font-bold text-lg text-brand-dark">{tierName || claimResult?.tierName || 'Standard'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[0.65rem] uppercase tracking-wider text-slate-500 mb-1">Context Score</p>
+                                    <p className="font-bold text-lg text-brand-dark">{contextScore || claimResult?.totalScore || 0}</p>
+                                </div>
+                                {claimResult?.txHash && (
+                                    <div className="hidden lg:block">
+                                        <p className="text-[0.65rem] uppercase tracking-wider text-slate-500 mb-1">Registration</p>
+                                        <p className="font-mono text-[0.65rem] text-slate-400 truncate w-32">{claimResult.txHash}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <Link to="/verify">
+                                <Button size="sm" variant="outline" className="w-full md:w-auto">Update Proof</Button>
+                            </Link>
+                        </div>
+                    </motion.div>
+                )}
+
                 <div className="mb-8 flex flex-wrap items-center gap-3">
                     <div className="ens-chip">
-                        {ensName || 'Unnamed'} {tierName ? `• ${tierName}` : ''}
+                        {ensName || 'No ENS Profile'} {tierName ? `• ${tierName}` : '• Not Verified'}
                     </div>
                 </div>
 
@@ -250,7 +347,7 @@ export default function PoolsPage() {
                                     {!hasAccess && (
                                         <div className="bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-100 flex items-center gap-1.5">
                                             <Lock className="w-3 h-3" />
-                                            Locked
+                                            {contextScore !== null && contextScore < pool.minScore ? 'Low Score' : 'Locked'}
                                         </div>
                                     )}
                                     {hasAccess && pool.isGated && (
@@ -304,11 +401,22 @@ export default function PoolsPage() {
                                             </Button>
                                         </>
                                     ) : (
-                                        <Link to="/verify" className="flex-1">
-                                            <Button variant="outline" className="w-full" size="sm">
-                                                Claim to unlock
-                                            </Button>
-                                        </Link>
+                                        contextScore !== null ? (
+                                            <div className="flex-1 group relative">
+                                                <Button variant="outline" className="w-full opacity-60 cursor-not-allowed group-hover:bg-red-50 group-hover:border-red-200 group-hover:text-red-700 transition-all" size="sm" disabled>
+                                                    Insufficient tier for access
+                                                </Button>
+                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[0.6rem] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+                                                    Required: {pool.minScore} | Your Score: {contextScore}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <Link to="/verify" className="flex-1">
+                                                <Button variant="outline" className="w-full text-brand-blue border-brand-blue/30 hover:bg-brand-blue/5" size="sm">
+                                                    Claim to unlock
+                                                </Button>
+                                            </Link>
+                                        )
                                     )}
                                 </div>
                             </motion.div>
@@ -316,46 +424,6 @@ export default function PoolsPage() {
                     })}
                 </div>
 
-                {/* Info Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="mt-12 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[2rem] p-8 border border-slate-100"
-                >
-                    <h2 className="text-2xl font-display font-bold text-brand-dark mb-4">
-                        Why private pools?
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm">
-                                <Lock className="w-6 h-6 text-brand-blue" />
-                            </div>
-                            <h3 className="font-bold text-brand-dark mb-2">Selective proof</h3>
-                            <p className="text-sm text-slate-700">
-                                Only verified tier members can trade. Prove eligibility without revealing your full history.
-                            </p>
-                        </div>
-                        <div>
-                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm">
-                                <Shield className="w-6 h-6 text-brand-blue" />
-                            </div>
-                            <h3 className="font-bold text-brand-dark mb-2">MEV shield</h3>
-                            <p className="text-sm text-slate-700">
-                                Tier gating and execution privacy drastically reduce sandwich attacks and toxic flow.
-                            </p>
-                        </div>
-                        <div>
-                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm">
-                                <TrendingUp className="w-6 h-6 text-brand-blue" />
-                            </div>
-                            <h3 className="font-bold text-brand-dark mb-2">LP upside</h3>
-                            <p className="text-sm text-slate-700">
-                                LPs earn more from reduced adverse selection and consistent volume from trusted traders.
-                            </p>
-                        </div>
-                    </div>
-                </motion.div>
             </div>
         </div>
     );
