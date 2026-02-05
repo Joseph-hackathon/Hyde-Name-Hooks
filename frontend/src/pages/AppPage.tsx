@@ -1223,7 +1223,7 @@ export default function AppPage() {
                                                                 Started at: {new Date(bridgeStartTime!).toLocaleTimeString()}
                                                             </div>
                                                             <a
-                                                                href="https://iris-api.circle.com/v1/explorer/transactions/"
+                                                                href="https://www.cctpscan.xyz/"
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                                 className="inline-block text-[0.6rem] font-semibold text-amber-900 underline underline-offset-2"
