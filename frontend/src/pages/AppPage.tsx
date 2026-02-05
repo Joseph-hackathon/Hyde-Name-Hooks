@@ -700,22 +700,22 @@ export default function AppPage() {
                             </p>
                             <div className="mt-4 grid grid-cols-2 gap-3">
                                 <a
-                                    href="https://sepolia.etherscan.io/address/0x12a20919684Fe8C1625CCC816bD0e6801C49d371"
+                                    href="https://sepolia.basescan.org/address/0x00427E39E353182d5595F8762Aa3559514615eCe"
                                     target="_blank"
                                     rel="noreferrer"
                                     className="bg-slate-50/50 rounded-xl p-3 border border-slate-100 hover:border-brand-blue/30 group transition-colors"
                                 >
                                     <div className="text-[0.6rem] uppercase tracking-wider text-slate-400 mb-1 group-hover:text-brand-blue transition-colors">Uniswap v4 Hook</div>
-                                    <div className="text-[0.65rem] font-mono text-slate-600 truncate group-hover:underline decoration-brand-blue/30 underline-offset-2">0x12a2...d371</div>
+                                    <div className="text-[0.65rem] font-mono text-slate-600 truncate group-hover:underline decoration-brand-blue/30 underline-offset-2">0x0042...5eCe</div>
                                 </a>
                                 <a
-                                    href="https://sepolia.etherscan.io/address/0x00427E39E353182d5595F8762Aa3559514615eCe"
+                                    href="https://sepolia.basescan.org/address/0xb5f1772159bCe5f2137492bf6f68F83e4aA0B005"
                                     target="_blank"
                                     rel="noreferrer"
                                     className="bg-slate-50/50 rounded-xl p-3 border border-slate-100 hover:border-brand-blue/30 group transition-colors"
                                 >
                                     <div className="text-[0.6rem] uppercase tracking-wider text-slate-400 mb-1 group-hover:text-brand-blue transition-colors">ENS Context Registry</div>
-                                    <div className="text-[0.65rem] font-mono text-slate-600 truncate group-hover:underline decoration-brand-blue/30 underline-offset-2">0x0042...5eCe</div>
+                                    <div className="text-[0.65rem] font-mono text-slate-600 truncate group-hover:underline decoration-brand-blue/30 underline-offset-2">0xb5f1...B005</div>
                                 </a>
                             </div>
 
