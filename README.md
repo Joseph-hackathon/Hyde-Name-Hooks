@@ -1,5 +1,7 @@
 # Hyde Name Hooks
 
+<img width="1902" height="834" alt="image" src="https://github.com/user-attachments/assets/271bfba4-4e68-408d-8f44-8d98e7090630" />
+
 ## Overview
 
 Hyde Name Hooks is a privacy-preserving Uniswap v4 Hook framework that enables **selective disclosure execution**.
@@ -155,15 +157,3 @@ Privacy pools often struggle with "Trash Traffic." By requiring an ENS name with
 - [ ] DAO-governed reputation scoring parameters
 - [ ] Decentralized Oracle network for context calculation
 - [ ] Expansion to Unichain and Base Mainnet
-
----
-
-## License
-
-Hyde Name Hooks is released under the **MIT License**.
-
----
-
-## Contact
-
-Built for the **HNH Hackathon** — *Selective Disclosure Execution Privacy.*
