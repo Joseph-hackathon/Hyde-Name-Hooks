@@ -779,7 +779,7 @@ export default function AppPage() {
                                     <Shield className="w-5 h-5 text-green-600" />
                                     <div className="flex-1">
                                         <div className="font-bold text-brand-dark text-sm">Privacy-Enhanced Execution</div>
-                                        <div className="text-xs text-slate-600">Your {tier} tier unlocks selective disclosure</div>
+                                        <div className="text-xs text-slate-600">Your {tierName} tier unlocks selective disclosure</div>
                                     </div>
                                 </div>
                             )}
@@ -802,31 +802,38 @@ export default function AppPage() {
                             <div className="mt-4 text-center text-xs text-slate-500">
                                 Powered by Uniswap v4 Hook • ENS Context Gated
                             </div>
+                        </motion.div>
 
-                            <div className="mt-6 rounded-2xl border border-slate-100 bg-white/70 p-5">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <p className="text-[0.7rem] uppercase tracking-[0.3em] text-slate-400">
-                                            Step 2 — After you swap
-                                        </p>
-                                        <h3 className="text-lg font-semibold text-brand-dark mt-2">
-                                            Arc USDC Settlement (Testnet)
-                                        </h3>
-                                        <p className="text-xs text-slate-600 mt-2">
-                                            Settlement does <strong>not</strong> perform a swap. It takes the USDC you already received in Step 1 and finalizes it into payment-ready balance (Arc/Circle). So: swap first, then enter the USDC amount you received and click Settle.
-                                        </p>
-                                        <div className="mt-3 text-[0.7rem] text-slate-500 space-y-1">
-                                            <div>• <strong>Swap</strong> = on-chain trade (Uniswap). <strong>Settle</strong> = turn that USDC into payment-ready balance.</div>
-                                            <div>• When Receive is USDC above, this amount is synced from Step 1. Otherwise type the USDC you expect from the swap.</div>
-                                        </div>
-                                    </div>
+                        {/* Step 2 Settlement Card */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="gsap-reveal md:col-span-2 ens-card ens-glass p-8 relative overflow-hidden"
+                        >
+                            <div className="flex items-start justify-between gap-4 mb-6">
+                                <div>
+                                    <p className="text-[0.7rem] uppercase tracking-[0.3em] text-brand-blue font-bold mb-2">
+                                        Step 2 — After you swap
+                                    </p>
+                                    <h2 className="text-2xl font-display font-bold text-brand-dark">
+                                        Arc USDC Settlement (Testnet)
+                                    </h2>
+                                    <p className="text-sm text-slate-600 mt-2">
+                                        Settlement finalizes the USDC you received into your payment-ready global balance.
+                                    </p>
                                 </div>
+                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-brand-blue">
+                                    <Activity className="w-6 h-6" />
+                                </div>
+                            </div>
 
-                                <div className="mt-4 space-y-3">
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-6">
+                                <div className="space-y-4">
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-xs text-slate-500">
+                                        <label className="text-xs font-bold text-slate-500">
                                             Expected USDC amount (required) {receiveToken === 'USDC' && expectedReceiveAmount && (
-                                                <span className="text-brand-blue font-normal">— from Receive above</span>
+                                                <span className="text-brand-blue font-normal ml-2">— synced from Step 1</span>
                                             )}
                                         </label>
                                         <input
@@ -834,19 +841,13 @@ export default function AppPage() {
                                             value={receiveToken === 'USDC' ? expectedReceiveAmount : (payToken === 'USDC' ? payAmount : expectedReceiveAmount)}
                                             onChange={(e) => receiveToken === 'USDC' ? setExpectedReceiveAmount(e.target.value) : (payToken === 'USDC' ? setPayAmount(e.target.value) : setExpectedReceiveAmount(e.target.value))}
                                             placeholder={receiveToken === 'USDC' ? 'Same as Receive amount above' : (payToken === 'USDC' ? 'e.g. 10.50 (USDC you pay)' : 'e.g. 10.50 (USDC you expect from swap)')}
-                                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
+                                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-lg font-bold text-brand-dark outline-none focus:border-brand-blue shadow-sm"
                                         />
-                                        <p className="text-[0.65rem] text-slate-400">
-                                            {receiveToken === 'USDC'
-                                                ? 'Synced with Receive amount above. Change it there or here.'
-                                                : payToken === 'USDC'
-                                                    ? 'USDC you pay in the swap (settle that amount).'
-                                                    : 'USDC amount you expect to receive from the swap. Settlement will use this.'}
-                                        </p>
                                     </div>
+
                                     <div className="flex flex-col gap-2">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-xs text-slate-500">Swap tx hash (optional)</label>
+                                            <label className="text-xs font-bold text-slate-500">Swap tx hash (optional)</label>
                                             <button
                                                 type="button"
                                                 onClick={() => openHelp('swap-hash')}
@@ -860,604 +861,622 @@ export default function AppPage() {
                                             value={swapTxHash}
                                             onChange={(event) => setSwapTxHash(event.target.value)}
                                             placeholder="0x..."
-                                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand-blue"
+                                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-mono text-brand-dark outline-none focus:border-brand-blue shadow-sm"
                                         />
                                     </div>
-                                    {receiveToken !== 'USDC' && (
-                                        <p className="text-[0.65rem] text-amber-700">
-                                            Arc settlement finalizes the USDC you <strong>receive</strong> from the swap. Set Receive to USDC (e.g. swap ETH → USDC) to use it.
-                                        </p>
-                                    )}
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        onClick={handleArcSettlement}
-                                        disabled={settlementStatus === 'submitting'}
-                                    >
-                                        {settlementStatus === 'submitting' ? 'Settling...' : 'Settle on Arc'}
-                                    </Button>
                                 </div>
+                            </div>
 
-                                {settlementStatus === 'error' && settlementError && (
-                                    <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
-                                        {settlementError}
+                            <Button
+                                className="w-full h-14 text-lg"
+                                onClick={handleArcSettlement}
+                                disabled={settlementStatus === 'submitting'}
+                            >
+                                {settlementStatus === 'submitting' ? 'Processing Settlement...' : 'Settle on Arc'}
+                            </Button>
+
+                            {settlementStatus === 'error' && settlementError && (
+                                <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+                                    {settlementError}
+                                </div>
+                            )}
+
+                            {!settlementResult && (
+                                <p className="mt-3 text-[0.65rem] text-slate-400">
+                                    After settlement succeeds, Gateway (unified balance, burn intent transfer) and Bridge Kit transfer appear below.
+                                </p>
+                            )}
+
+                            {settlementStatus === 'success' && settlementResult && (
+                                <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                                    Settlement ready • {settlementResult.usdcAmount} {settlementResult.settlementAsset} •{' '}
+                                    <button
+                                        type="button"
+                                        onClick={() => openHelp('settlement-id')}
+                                        className="font-semibold underline"
+                                    >
+                                        ID {settlementResult.settlementId}
+                                    </button>
+                                    {settlementResult.circleTransactionState && (
+                                        <span className="ml-2 text-[0.65rem] uppercase tracking-[0.2em] text-emerald-600">
+                                            {settlementResult.circleTransactionState}
+                                        </span>
+                                    )}
+                                    {circleStatus?.txHash && arcExplorerBase && (
+                                        <a
+                                            href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="ml-2 text-[0.65rem] font-semibold text-emerald-700 underline"
+                                        >
+                                            Arc Explorer
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+
+                            {settlementResult?.circleTransactionId && (
+                                <div className="mt-3 rounded-xl border border-slate-100 bg-white px-3 py-2 text-xs text-slate-600">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span>Circle tx</span>
+                                        <span className="font-mono text-[0.65rem] text-brand-dark">
+                                            {settlementResult.circleTransactionId}
+                                        </span>
                                     </div>
-                                )}
-
-                                {!settlementResult && (
-                                    <p className="mt-3 text-[0.65rem] text-slate-400">
-                                        After settlement succeeds, Gateway (unified balance, burn intent transfer) and Bridge Kit transfer appear below.
-                                    </p>
-                                )}
-
-                                {settlementStatus === 'success' && settlementResult && (
-                                    <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                                        Settlement ready • {settlementResult.usdcAmount} {settlementResult.settlementAsset} •{' '}
+                                    {circleStatus && (
+                                        <div className="mt-2 flex items-center justify-between gap-3">
+                                            <span>Status</span>
+                                            <span className="font-semibold text-brand-dark">{circleStatus.state}</span>
+                                        </div>
+                                    )}
+                                    {circleStatus?.txHash && (
+                                        <div className="mt-2 flex items-center justify-between gap-3">
+                                            <span>Tx hash</span>
+                                            <div className="flex items-center gap-2">
+                                                {arcExplorerBase ? (
+                                                    <a
+                                                        href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="font-mono text-[0.65rem] text-brand-dark underline"
+                                                    >
+                                                        {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
+                                                    </a>
+                                                ) : (
+                                                    <span className="font-mono text-[0.65rem] text-brand-dark">
+                                                        {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
+                                                    </span>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openHelp('settlement-hash')}
+                                                    className="text-[0.65rem] font-semibold text-brand-blue underline"
+                                                >
+                                                    Help
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {circleStatus?.errorReason && (
+                                        <div className="mt-2 rounded-lg border border-red-100 bg-red-50 px-2 py-1 text-[0.65rem] text-red-700">
+                                            Failure reason: {circleStatus.errorReason}
+                                        </div>
+                                    )}
+                                    <div className="mt-2 flex items-center justify-between gap-3">
+                                        <span>Auto refresh</span>
                                         <button
                                             type="button"
-                                            onClick={() => openHelp('settlement-id')}
-                                            className="font-semibold underline"
+                                            onClick={() => setAutoCheckEnabled((value) => !value)}
+                                            className={`rounded-full px-3 py-1 text-[0.65rem] font-semibold transition-colors ${autoCheckEnabled
+                                                ? 'bg-emerald-100 text-emerald-700'
+                                                : 'bg-slate-100 text-slate-500'
+                                                }`}
                                         >
-                                            ID {settlementResult.settlementId}
+                                            {autoCheckEnabled ? 'ON' : 'OFF'}
                                         </button>
-                                        {settlementResult.circleTransactionState && (
-                                            <span className="ml-2 text-[0.65rem] uppercase tracking-[0.2em] text-emerald-600">
-                                                {settlementResult.circleTransactionState}
-                                            </span>
-                                        )}
-                                        {circleStatus?.txHash && arcExplorerBase && (
-                                            <a
-                                                href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="ml-2 text-[0.65rem] font-semibold text-emerald-700 underline"
-                                            >
-                                                Arc Explorer
-                                            </a>
-                                        )}
                                     </div>
-                                )}
-
-                                {settlementResult?.circleTransactionId && (
-                                    <div className="mt-3 rounded-xl border border-slate-100 bg-white px-3 py-2 text-xs text-slate-600">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <span>Circle tx</span>
-                                            <span className="font-mono text-[0.65rem] text-brand-dark">
-                                                {settlementResult.circleTransactionId}
-                                            </span>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="mt-2"
+                                        onClick={handleCheckSettlement}
+                                        disabled={settlementStatus === 'submitting'}
+                                    >
+                                        Refresh status
+                                    </Button>
+                                    {circleStatus && terminalStates.includes(circleStatus.state) && (
+                                        <div className="mt-2 text-[0.65rem] text-slate-500">
+                                            {circleStatus.state === 'COMPLETE'
+                                                ? 'Settlement complete: USDC is reflected on Arc.'
+                                                : 'Settlement failed: review status and retry.'}
                                         </div>
-                                        {circleStatus && (
-                                            <div className="mt-2 flex items-center justify-between gap-3">
-                                                <span>Status</span>
-                                                <span className="font-semibold text-brand-dark">{circleStatus.state}</span>
+                                    )}
+                                    {circleStatus &&
+                                        terminalStates.includes(circleStatus.state) &&
+                                        circleStatus.state !== 'COMPLETE' && (
+                                            <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem] text-slate-600">
+                                                {(() => {
+                                                    const resolution = getFailureResolution(circleStatus.errorReason);
+                                                    return (
+                                                        <>
+                                                            <div className="font-semibold text-brand-dark">{resolution.title}</div>
+                                                            <div className="mt-1">{resolution.detail}</div>
+                                                            <div className="mt-2">
+                                                                {resolution.action === 'support' && resolution.href ? (
+                                                                    <a
+                                                                        href={resolution.href}
+                                                                        className="font-semibold text-brand-blue underline"
+                                                                    >
+                                                                        {resolution.actionLabel}
+                                                                    </a>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={handleArcSettlement}
+                                                                        className="font-semibold text-brand-blue underline"
+                                                                    >
+                                                                        {resolution.actionLabel}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    );
+                                                })()}
                                             </div>
                                         )}
-                                        {circleStatus?.txHash && (
-                                            <div className="mt-2 flex items-center justify-between gap-3">
-                                                <span>Tx hash</span>
-                                                <div className="flex items-center gap-2">
-                                                    {arcExplorerBase ? (
-                                                        <a
-                                                            href={`${arcExplorerBase.replace(/\/$/, '')}/tx/${circleStatus.txHash}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="font-mono text-[0.65rem] text-brand-dark underline"
-                                                        >
-                                                            {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
-                                                        </a>
-                                                    ) : (
-                                                        <span className="font-mono text-[0.65rem] text-brand-dark">
-                                                            {circleStatus.txHash.slice(0, 10)}...{circleStatus.txHash.slice(-6)}
-                                                        </span>
-                                                    )}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => openHelp('settlement-hash')}
-                                                        className="text-[0.65rem] font-semibold text-brand-blue underline"
-                                                    >
-                                                        Help
-                                                    </button>
-                                                </div>
+                                </div>
+                            )}
+                            {settlementStatus === 'success' && settlementResult && (
+                                <div className="mt-4 rounded-xl border border-slate-100 bg-white/70 px-4 py-3 text-xs text-slate-600">
+                                    <div className="flex items-center justify-between">
+                                        <span className="uppercase tracking-[0.25em] text-[0.6rem] text-slate-400">
+                                            Post-settlement mobility
+                                        </span>
+                                    </div>
+                                    <div className="mt-3 grid gap-4 md:grid-cols-2">
+                                        <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-semibold text-brand-dark">Gateway unified balance</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleGatewayBalances}
+                                                    className="text-[0.65rem] font-semibold text-brand-blue underline"
+                                                >
+                                                    {gatewayStatus === 'loading' ? 'Loading...' : 'Refresh'}
+                                                </button>
                                             </div>
-                                        )}
-                                        {circleStatus?.errorReason && (
-                                            <div className="mt-2 rounded-lg border border-red-100 bg-red-50 px-2 py-1 text-[0.65rem] text-red-700">
-                                                Failure reason: {circleStatus.errorReason}
-                                            </div>
-                                        )}
-                                        <div className="mt-2 flex items-center justify-between gap-3">
-                                            <span>Auto refresh</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setAutoCheckEnabled((value) => !value)}
-                                                className={`rounded-full px-3 py-1 text-[0.65rem] font-semibold transition-colors ${autoCheckEnabled
-                                                    ? 'bg-emerald-100 text-emerald-700'
-                                                    : 'bg-slate-100 text-slate-500'
-                                                    }`}
-                                            >
-                                                {autoCheckEnabled ? 'ON' : 'OFF'}
-                                            </button>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="mt-2"
-                                            onClick={handleCheckSettlement}
-                                            disabled={settlementStatus === 'submitting'}
-                                        >
-                                            Refresh status
-                                        </Button>
-                                        {circleStatus && terminalStates.includes(circleStatus.state) && (
-                                            <div className="mt-2 text-[0.65rem] text-slate-500">
-                                                {circleStatus.state === 'COMPLETE'
-                                                    ? 'Settlement complete: USDC is reflected on Arc.'
-                                                    : 'Settlement failed: review status and retry.'}
-                                            </div>
-                                        )}
-                                        {circleStatus &&
-                                            terminalStates.includes(circleStatus.state) &&
-                                            circleStatus.state !== 'COMPLETE' && (
-                                                <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem] text-slate-600">
-                                                    {(() => {
-                                                        const resolution = getFailureResolution(circleStatus.errorReason);
-                                                        return (
-                                                            <>
-                                                                <div className="font-semibold text-brand-dark">{resolution.title}</div>
-                                                                <div className="mt-1">{resolution.detail}</div>
-                                                                <div className="mt-2">
-                                                                    {resolution.action === 'support' && resolution.href ? (
-                                                                        <a
-                                                                            href={resolution.href}
-                                                                            className="font-semibold text-brand-blue underline"
-                                                                        >
-                                                                            {resolution.actionLabel}
-                                                                        </a>
-                                                                    ) : (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={handleArcSettlement}
-                                                                            className="font-semibold text-brand-blue underline"
-                                                                        >
-                                                                            {resolution.actionLabel}
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                            </>
-                                                        );
-                                                    })()}
+                                            <p className="mt-1 text-[0.65rem] text-slate-500">
+                                                Check unified USDC balances after settlement.
+                                            </p>
+                                            {gatewayBalances && (
+                                                <div className="mt-2 space-y-1 text-[0.65rem] text-slate-600">
+                                                    {gatewayBalances.length === 0 && <div>No balances yet.</div>}
+                                                    {gatewayBalances.map((entry) => (
+                                                        <div key={`${entry.domain}-${entry.balance}`} className="flex justify-between">
+                                                            <span>Domain {entry.domain}</span>
+                                                            <span className="font-semibold text-brand-dark">{entry.balance} USDC</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             )}
-                                    </div>
-                                )}
-                                {settlementStatus === 'success' && settlementResult && (
-                                    <div className="mt-4 rounded-xl border border-slate-100 bg-white/70 px-4 py-3 text-xs text-slate-600">
-                                        <div className="flex items-center justify-between">
-                                            <span className="uppercase tracking-[0.25em] text-[0.6rem] text-slate-400">
-                                                Post-settlement mobility
-                                            </span>
+                                            {gatewayError && (
+                                                <div className="mt-2 text-[0.65rem] text-amber-700">
+                                                    {gatewayError}
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="mt-3 grid gap-4 md:grid-cols-2">
-                                            <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-semibold text-brand-dark">Gateway unified balance</span>
+                                        <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-semibold text-brand-dark">Gateway transfer (burn intent)</span>
+                                            </div>
+                                            <p className="mt-1 text-[0.65rem] text-slate-500">
+                                                Build burn intent, sign with wallet, submit to Gateway.
+                                            </p>
+                                            <div className="mt-2 grid gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <select
+                                                        value={gatewaySourceDomain}
+                                                        onChange={(e) => setGatewaySourceDomain(Number(e.target.value))}
+                                                        className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                    >
+                                                        {gatewayDomains.map((d) => (
+                                                            <option key={d.domain} value={d.domain}>{d.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <select
+                                                        value={gatewayDestDomain}
+                                                        onChange={(e) => setGatewayDestDomain(Number(e.target.value))}
+                                                        className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                    >
+                                                        {gatewayDomains.map((d) => (
+                                                            <option key={d.domain} value={d.domain}>{d.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={gatewayAmount}
+                                                    onChange={(e) => setGatewayAmount(e.target.value)}
+                                                    placeholder="USDC amount"
+                                                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                />
+                                                <div className="flex items-center gap-2">
                                                     <button
                                                         type="button"
-                                                        onClick={handleGatewayBalances}
-                                                        className="text-[0.65rem] font-semibold text-brand-blue underline"
+                                                        onClick={handleBuildBurnIntent}
+                                                        className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.65rem] font-semibold text-slate-700"
+                                                        disabled={gatewayTransferStatus === 'building' || gatewayTransferStatus === 'submitting'}
                                                     >
-                                                        {gatewayStatus === 'loading' ? 'Loading...' : 'Refresh'}
+                                                        {gatewayTransferStatus === 'building' ? 'Building...' : 'Build burn intent'}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSignAndSubmitGateway}
+                                                        className="flex-1 rounded-lg bg-brand-blue px-2 py-1 text-[0.65rem] font-semibold text-white"
+                                                        disabled={!gatewayBurnIntent || gatewayTransferStatus === 'signing' || gatewayTransferStatus === 'submitting'}
+                                                    >
+                                                        {gatewayTransferStatus === 'signing' ? 'Signing...' : gatewayTransferStatus === 'submitting' ? 'Submitting...' : 'Sign & submit'}
                                                     </button>
                                                 </div>
-                                                <p className="mt-1 text-[0.65rem] text-slate-500">
-                                                    Check unified USDC balances after settlement.
-                                                </p>
-                                                {gatewayBalances && (
-                                                    <div className="mt-2 space-y-1 text-[0.65rem] text-slate-600">
-                                                        {gatewayBalances.length === 0 && <div>No balances yet.</div>}
-                                                        {gatewayBalances.map((entry) => (
-                                                            <div key={`${entry.domain}-${entry.balance}`} className="flex justify-between">
-                                                                <span>Domain {entry.domain}</span>
-                                                                <span className="font-semibold text-brand-dark">{entry.balance} USDC</span>
-                                                            </div>
+                                                {gatewayBurnIntent && (
+                                                    <div className="text-[0.65rem] text-slate-500">
+                                                        Burn intent ready. Sign & submit to Gateway.
+                                                    </div>
+                                                )}
+                                                {gatewayTransferResult && (
+                                                    <div className="mt-2 space-y-1 rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-2 text-[0.65rem] text-emerald-800">
+                                                        {gatewayTransferResult.transferId && <div>Transfer ID: {gatewayTransferResult.transferId}</div>}
+                                                        {gatewayTransferResult.fees?.total != null && <div>Fees: {gatewayTransferResult.fees.total} {gatewayTransferResult.fees.token ?? 'USDC'}</div>}
+                                                        {gatewayTransferResult.expirationBlock && <div>Expires at block: {gatewayTransferResult.expirationBlock}</div>}
+                                                    </div>
+                                                )}
+                                                {gatewayTransferError && (
+                                                    <div className="text-[0.65rem] text-amber-700">{gatewayTransferError}</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 grid gap-4 md:grid-cols-1">
+                                        <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
+                                            </div>
+                                            <p className="mt-1 text-[0.65rem] text-slate-500">
+                                                Use as <strong>source</strong> the chain where your wallet has native token for gas (e.g. Arc Testnet ↔ Base Sepolia). Balance is checked on the source chain only.
+                                            </p>
+                                            {address && /Ethereum_Sepolia|Ethereum Sepolia/i.test(bridgeFromChain) && (
+                                                <div className="mt-2 text-[0.65rem]">
+                                                    {sourceBalanceLoading ? (
+                                                        <span className="text-slate-500">Checking source balance…</span>
+                                                    ) : sourceBalance !== null ? (
+                                                        <>
+                                                            <span className="text-slate-600">Source balance: <strong>{Number(sourceBalance).toFixed(4)} ETH</strong></span>
+                                                            {Number(sourceBalance) < 0.001 && (
+                                                                <div className="mt-1 text-amber-700">
+                                                                    No gas on source chain. Get Sepolia ETH from a faucet first:{' '}
+                                                                    <a href="https://www.alchemy.com/faucets/ethereum-sepolia" target="_blank" rel="noopener noreferrer" className="underline">Alchemy</a>
+                                                                    {' · '}
+                                                                    <a href="https://sepoliafaucet.com" target="_blank" rel="noopener noreferrer" className="underline">sepoliafaucet.com</a>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    ) : null}
+                                                </div>
+                                            )}
+                                            <div className="mt-2 grid gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <select
+                                                        value={bridgeFromChain}
+                                                        onChange={(event) => setBridgeFromChain(event.target.value)}
+                                                        className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                    >
+                                                        {bridgeChains.map((chain) => (
+                                                            <option key={`from-${chain.chain}`} value={chain.chain}>
+                                                                {chain.name}
+                                                            </option>
                                                         ))}
-                                                    </div>
-                                                )}
-                                                {gatewayError && (
-                                                    <div className="mt-2 text-[0.65rem] text-amber-700">
-                                                        {gatewayError}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-semibold text-brand-dark">Gateway transfer (burn intent)</span>
+                                                    </select>
+                                                    <select
+                                                        value={bridgeToChain}
+                                                        onChange={(event) => setBridgeToChain(event.target.value)}
+                                                        className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                    >
+                                                        {bridgeChains.map((chain) => (
+                                                            <option key={`to-${chain.chain}`} value={chain.chain}>
+                                                                {chain.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </div>
-                                                <p className="mt-1 text-[0.65rem] text-slate-500">
-                                                    Build burn intent, sign with wallet, submit to Gateway.
-                                                </p>
-                                                <div className="mt-2 grid gap-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <select
-                                                            value={gatewaySourceDomain}
-                                                            onChange={(e) => setGatewaySourceDomain(Number(e.target.value))}
-                                                            className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
-                                                        >
-                                                            {gatewayDomains.map((d) => (
-                                                                <option key={d.domain} value={d.domain}>{d.name}</option>
-                                                            ))}
-                                                        </select>
-                                                        <select
-                                                            value={gatewayDestDomain}
-                                                            onChange={(e) => setGatewayDestDomain(Number(e.target.value))}
-                                                            className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
-                                                        >
-                                                            {gatewayDomains.map((d) => (
-                                                                <option key={d.domain} value={d.domain}>{d.name}</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
+                                                <div className="flex items-center gap-2">
                                                     <input
                                                         type="text"
-                                                        value={gatewayAmount}
-                                                        onChange={(e) => setGatewayAmount(e.target.value)}
+                                                        value={bridgeAmount}
+                                                        onChange={(event) => setBridgeAmount(event.target.value)}
                                                         placeholder="USDC amount"
-                                                        className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                        className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
                                                     />
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleBuildBurnIntent}
-                                                            className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.65rem] font-semibold text-slate-700"
-                                                            disabled={gatewayTransferStatus === 'building' || gatewayTransferStatus === 'submitting'}
-                                                        >
-                                                            {gatewayTransferStatus === 'building' ? 'Building...' : 'Build burn intent'}
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleSignAndSubmitGateway}
-                                                            className="flex-1 rounded-lg bg-brand-blue px-2 py-1 text-[0.65rem] font-semibold text-white"
-                                                            disabled={!gatewayBurnIntent || gatewayTransferStatus === 'signing' || gatewayTransferStatus === 'submitting'}
-                                                        >
-                                                            {gatewayTransferStatus === 'signing' ? 'Signing...' : gatewayTransferStatus === 'submitting' ? 'Submitting...' : 'Sign & submit'}
-                                                        </button>
-                                                    </div>
-                                                    {gatewayBurnIntent && (
-                                                        <div className="text-[0.65rem] text-slate-500">
-                                                            Burn intent ready. Sign & submit to Gateway.
-                                                        </div>
-                                                    )}
-                                                    {gatewayTransferResult && (
-                                                        <div className="mt-2 space-y-1 rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-2 text-[0.65rem] text-emerald-800">
-                                                            {gatewayTransferResult.transferId && <div>Transfer ID: {gatewayTransferResult.transferId}</div>}
-                                                            {gatewayTransferResult.fees?.total != null && <div>Fees: {gatewayTransferResult.fees.total} {gatewayTransferResult.fees.token ?? 'USDC'}</div>}
-                                                            {gatewayTransferResult.expirationBlock && <div>Expires at block: {gatewayTransferResult.expirationBlock}</div>}
-                                                        </div>
-                                                    )}
-                                                    {gatewayTransferError && (
-                                                        <div className="text-[0.65rem] text-amber-700">{gatewayTransferError}</div>
-                                                    )}
+                                                    <select
+                                                        value={bridgeSpeed}
+                                                        onChange={(event) => setBridgeSpeed(event.target.value as 'FAST' | 'SLOW')}
+                                                        className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                    >
+                                                        <option value="FAST">FAST</option>
+                                                        <option value="SLOW">SLOW</option>
+                                                    </select>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="mt-4 grid gap-4 md:grid-cols-1">
-                                            <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
+                                                <input
+                                                    type="text"
+                                                    value={bridgeMaxFee}
+                                                    onChange={(event) => setBridgeMaxFee(event.target.value)}
+                                                    placeholder="Max fee (optional)"
+                                                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleBridgeEstimate}
+                                                        className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.65rem] font-semibold text-slate-700"
+                                                        disabled={bridgeStatus === 'estimating' || bridgeStatus === 'bridging'}
+                                                    >
+                                                        {bridgeStatus === 'estimating' ? 'Estimating...' : 'Estimate'}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleBridgeTransfer}
+                                                        className="flex-1 rounded-lg bg-brand-blue px-2 py-1 text-[0.65rem] font-semibold text-white shadow-lg shadow-brand-blue/20 hover:bg-brand-blue/90 transition-all active:scale-95"
+                                                        disabled={bridgeStatus === 'bridging'}
+                                                    >
+                                                        {bridgeStatus === 'bridging' ? 'Bridging (est. 20m)...' : 'Bridge Assets'}
+                                                    </button>
                                                 </div>
-                                                <p className="mt-1 text-[0.65rem] text-slate-500">
-                                                    Use as <strong>source</strong> the chain where your wallet has native token for gas (e.g. Arc Testnet ↔ Base Sepolia). Balance is checked on the source chain only.
-                                                </p>
-                                                {address && /Ethereum_Sepolia|Ethereum Sepolia/i.test(bridgeFromChain) && (
-                                                    <div className="mt-2 text-[0.65rem]">
-                                                        {sourceBalanceLoading ? (
-                                                            <span className="text-slate-500">Checking source balance…</span>
-                                                        ) : sourceBalance !== null ? (
-                                                            <>
-                                                                <span className="text-slate-600">Source balance: <strong>{Number(sourceBalance).toFixed(4)} ETH</strong></span>
-                                                                {Number(sourceBalance) < 0.001 && (
-                                                                    <div className="mt-1 text-amber-700">
-                                                                        No gas on source chain. Get Sepolia ETH from a faucet first:{' '}
-                                                                        <a href="https://www.alchemy.com/faucets/ethereum-sepolia" target="_blank" rel="noopener noreferrer" className="underline">Alchemy</a>
-                                                                        {' · '}
-                                                                        <a href="https://sepoliafaucet.com" target="_blank" rel="noopener noreferrer" className="underline">sepoliafaucet.com</a>
-                                                                    </div>
-                                                                )}
-                                                            </>
-                                                        ) : null}
+
+                                                {bridgeStatus === 'bridging' && (
+                                                    <div className="mt-2 p-3 rounded-lg border border-amber-100 bg-amber-50 space-y-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                                                            <span className="text-[0.65rem] font-bold text-amber-800">Bridge in Progress</span>
+                                                        </div>
+                                                        <p className="text-[0.6rem] text-amber-700 leading-relaxed">
+                                                            Circle CCTP requires approximately <strong>20 minutes</strong> for attestation when moving from {bridgeFromChain.replace('_', ' ')} to {bridgeToChain.replace('_', ' ')}.
+                                                            Please do not close this window until the transaction is confirmed in your wallet.
+                                                        </p>
+                                                        <div className="text-[0.55rem] text-amber-600">
+                                                            Started at: {new Date(bridgeStartTime!).toLocaleTimeString()}
+                                                        </div>
+                                                        <a
+                                                            href="https://www.cctpscan.xyz/"
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-block text-[0.6rem] font-semibold text-amber-900 underline underline-offset-2"
+                                                        >
+                                                            Track on Circle Iris Explorer
+                                                        </a>
                                                     </div>
                                                 )}
-                                                <div className="mt-2 grid gap-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <select
-                                                            value={bridgeFromChain}
-                                                            onChange={(event) => setBridgeFromChain(event.target.value)}
-                                                            className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
-                                                        >
-                                                            {bridgeChains.map((chain) => (
-                                                                <option key={`from-${chain.chain}`} value={chain.chain}>
-                                                                    {chain.name}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                        <select
-                                                            value={bridgeToChain}
-                                                            onChange={(event) => setBridgeToChain(event.target.value)}
-                                                            className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
-                                                        >
-                                                            {bridgeChains.map((chain) => (
-                                                                <option key={`to-${chain.chain}`} value={chain.chain}>
-                                                                    {chain.name}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <input
-                                                            type="text"
-                                                            value={bridgeAmount}
-                                                            onChange={(event) => setBridgeAmount(event.target.value)}
-                                                            placeholder="USDC amount"
-                                                            className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
-                                                        />
-                                                        <select
-                                                            value={bridgeSpeed}
-                                                            onChange={(event) => setBridgeSpeed(event.target.value as 'FAST' | 'SLOW')}
-                                                            className="w-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
-                                                        >
-                                                            <option value="FAST">FAST</option>
-                                                            <option value="SLOW">SLOW</option>
-                                                        </select>
-                                                    </div>
-                                                    <input
-                                                        type="text"
-                                                        value={bridgeMaxFee}
-                                                        onChange={(event) => setBridgeMaxFee(event.target.value)}
-                                                        placeholder="Max fee (optional)"
-                                                        className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[0.65rem]"
-                                                    />
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleBridgeEstimate}
-                                                            className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-[0.65rem] font-semibold text-slate-700"
-                                                            disabled={bridgeStatus === 'estimating' || bridgeStatus === 'bridging'}
-                                                        >
-                                                            {bridgeStatus === 'estimating' ? 'Estimating...' : 'Estimate'}
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleBridgeTransfer}
-                                                            className="flex-1 rounded-lg bg-brand-blue px-2 py-1 text-[0.65rem] font-semibold text-white shadow-lg shadow-brand-blue/20 hover:bg-brand-blue/90 transition-all active:scale-95"
-                                                            disabled={bridgeStatus === 'bridging'}
-                                                        >
-                                                            {bridgeStatus === 'bridging' ? 'Bridging (est. 20m)...' : 'Bridge Assets'}
-                                                        </button>
-                                                    </div>
-
-                                                    {bridgeStatus === 'bridging' && (
-                                                        <div className="mt-2 p-3 rounded-lg border border-amber-100 bg-amber-50 space-y-2">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
-                                                                <span className="text-[0.65rem] font-bold text-amber-800">Bridge in Progress</span>
+                                                {bridgeEstimate && (
+                                                    <div className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem] mt-3">
+                                                        <div className="font-semibold text-slate-700">
+                                                            Estimate: {(bridgeEstimate as { amount?: string }).amount ?? '—'} {(bridgeEstimate as { token?: string }).token ?? 'USDC'}
+                                                        </div>
+                                                        {Array.isArray((bridgeEstimate as { gasFees?: unknown[] }).gasFees) && (
+                                                            <div className="text-slate-600">
+                                                                Gas: {((bridgeEstimate as { gasFees: Array<{ token?: string; fees?: { fee?: string } | null }> }).gasFees)
+                                                                    .map((g) => (g.fees?.fee ? `${g.fees.fee} ${g.token ?? ''}` : g.token)).filter(Boolean).join(', ') || '—'}
                                                             </div>
-                                                            <p className="text-[0.6rem] text-amber-700 leading-relaxed">
-                                                                Circle CCTP requires approximately <strong>20 minutes</strong> for attestation when moving from {bridgeFromChain.replace('_', ' ')} to {bridgeToChain.replace('_', ' ')}.
-                                                                Please do not close this window until the transaction is confirmed in your wallet.
+                                                        )}
+                                                        {Array.isArray((bridgeEstimate as { fees?: Array<{ amount?: string | null }> }).fees) && (
+                                                            <div className="text-slate-600">
+                                                                Fees: {((bridgeEstimate as { fees: Array<{ amount?: string | null }> }).fees)
+                                                                    .map((f) => f.amount ?? '0').join(', ')}
+                                                            </div>
+                                                        )}
+                                                        <div className="text-slate-500">Review above, then click Bridge.</div>
+                                                    </div>
+                                                )}
+
+                                                {/* Bridge Recovery Section */}
+                                                <div className="mt-6 border-t border-slate-100 pt-4">
+                                                    <details className="group">
+                                                        <summary className="flex items-center justify-between cursor-pointer list-none">
+                                                            <span className="text-[0.65rem] font-bold text-slate-500 group-open:text-brand-blue transition-colors">
+                                                                Support: Resume Pending Bridge
+                                                            </span>
+                                                            <ArrowLeft className="w-3 h-3 text-slate-400 group-open:rotate-90 transition-transform" />
+                                                        </summary>
+                                                        <div className="mt-3 space-y-3">
+                                                            <p className="text-[0.6rem] text-slate-500">
+                                                                If your bridge was interrupted or is waiting for attestation, enter the <strong>Source Transaction Hash</strong> to complete the mint.
                                                             </p>
-                                                            <div className="text-[0.55rem] text-amber-600">
-                                                                Started at: {new Date(bridgeStartTime!).toLocaleTimeString()}
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={recoveryTxHash}
+                                                                    onChange={(e) => setRecoveryTxHash(e.target.value)}
+                                                                    placeholder="0x..."
+                                                                    className="flex-1 px-2 py-1 text-[0.65rem] border border-slate-200 rounded outline-none focus:border-brand-blue"
+                                                                />
+                                                                <button
+                                                                    onClick={handleRecoverBridge}
+                                                                    disabled={recoveryStatus === 'recovering'}
+                                                                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[0.65rem] font-bold transition-colors disabled:opacity-50"
+                                                                >
+                                                                    {recoveryStatus === 'recovering' ? 'Resuming...' : 'Resume'}
+                                                                </button>
                                                             </div>
-                                                            <a
-                                                                href="https://www.cctpscan.xyz/"
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="inline-block text-[0.6rem] font-semibold text-amber-900 underline underline-offset-2"
-                                                            >
-                                                                Track on Circle Iris Explorer
-                                                            </a>
-                                                        </div>
-                                                    )}
-                                                    {bridgeEstimate && (
-                                                        <div className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem] mt-3">
-                                                            <div className="font-semibold text-slate-700">
-                                                                Estimate: {(bridgeEstimate as { amount?: string }).amount ?? '—'} {(bridgeEstimate as { token?: string }).token ?? 'USDC'}
-                                                            </div>
-                                                            {Array.isArray((bridgeEstimate as { gasFees?: unknown[] }).gasFees) && (
-                                                                <div className="text-slate-600">
-                                                                    Gas: {((bridgeEstimate as { gasFees: Array<{ token?: string; fees?: { fee?: string } | null }> }).gasFees)
-                                                                        .map((g) => (g.fees?.fee ? `${g.fees.fee} ${g.token ?? ''}` : g.token)).filter(Boolean).join(', ') || '—'}
-                                                                </div>
-                                                            )}
-                                                            {Array.isArray((bridgeEstimate as { fees?: Array<{ amount?: string | null }> }).fees) && (
-                                                                <div className="text-slate-600">
-                                                                    Fees: {((bridgeEstimate as { fees: Array<{ amount?: string | null }> }).fees)
-                                                                        .map((f) => f.amount ?? '0').join(', ')}
-                                                                </div>
-                                                            )}
-                                                            <div className="text-slate-500">Review above, then click Bridge.</div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Bridge Recovery Section */}
-                                                    <div className="mt-6 border-t border-slate-100 pt-4">
-                                                        <details className="group">
-                                                            <summary className="flex items-center justify-between cursor-pointer list-none">
-                                                                <span className="text-[0.65rem] font-bold text-slate-500 group-open:text-brand-blue transition-colors">
-                                                                    Support: Resume Pending Bridge
-                                                                </span>
-                                                                <ArrowLeft className="w-3 h-3 text-slate-400 group-open:rotate-90 transition-transform" />
-                                                            </summary>
-                                                            <div className="mt-3 space-y-3">
-                                                                <p className="text-[0.6rem] text-slate-500">
-                                                                    If your bridge was interrupted or is waiting for attestation, enter the <strong>Source Transaction Hash</strong> to complete the mint.
+                                                            {recoveryStatus === 'success' && (
+                                                                <p className="text-[0.6rem] text-emerald-600 font-bold">
+                                                                    Bridge resumed! Checking finalization...
                                                                 </p>
-                                                                <div className="flex gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={recoveryTxHash}
-                                                                        onChange={(e) => setRecoveryTxHash(e.target.value)}
-                                                                        placeholder="0x..."
-                                                                        className="flex-1 px-2 py-1 text-[0.65rem] border border-slate-200 rounded outline-none focus:border-brand-blue"
-                                                                    />
-                                                                    <button
-                                                                        onClick={handleRecoverBridge}
-                                                                        disabled={recoveryStatus === 'recovering'}
-                                                                        className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[0.65rem] font-bold transition-colors disabled:opacity-50"
-                                                                    >
-                                                                        {recoveryStatus === 'recovering' ? 'Resuming...' : 'Resume'}
-                                                                    </button>
-                                                                </div>
-                                                                {recoveryStatus === 'success' && (
-                                                                    <p className="text-[0.6rem] text-emerald-600 font-bold">
-                                                                        Bridge resumed! Checking finalization...
-                                                                    </p>
-                                                                )}
-                                                                {recoveryStatus === 'error' && recoveryError && (
-                                                                    <p className="text-[0.6rem] text-red-600">
-                                                                        {recoveryError}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                        </details>
-                                                    </div>
-                                                    {bridgeResult && (
-                                                        <div className="mt-2 space-y-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem]">
-                                                            <div className="font-semibold text-brand-dark">
-                                                                Bridge result: {(bridgeResult as { state?: string }).state ?? 'submitted'} · {(bridgeResult as { amount?: string }).amount ?? '—'} {(bridgeResult as { token?: string }).token ?? 'USDC'}
-                                                            </div>
-                                                            {Array.isArray((bridgeResult as { steps?: unknown[] }).steps) && (
-                                                                <div className="space-y-1.5">
-                                                                    <span className="font-semibold text-slate-600">Steps</span>
-                                                                    {((bridgeResult as { steps: Array<{ name?: string; state?: string; txHash?: string; explorerUrl?: string; errorMessage?: string }> }).steps).map((step, i) => (
-                                                                        <div key={i} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded border border-slate-100 bg-white px-2 py-1">
-                                                                            <span className="font-medium text-slate-700">{step.name ?? `Step ${i + 1}`}</span>
-                                                                            <span className={`rounded px-1 font-medium ${step.state === 'success' ? 'bg-emerald-100 text-emerald-700' : step.state === 'error' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                                                {step.state ?? 'pending'}
-                                                                            </span>
-                                                                            {step.txHash && (
-                                                                                <a href={step.explorerUrl ?? `https://etherscan.io/tx/${step.txHash}`} target="_blank" rel="noopener noreferrer" className="text-brand-blue underline">
-                                                                                    tx: {step.txHash.slice(0, 10)}…{step.txHash.slice(-8)}
-                                                                                </a>
-                                                                            )}
-                                                                            {step.errorMessage && <span className="text-amber-700">{step.errorMessage}</span>}
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
+                                                            )}
+                                                            {recoveryStatus === 'error' && recoveryError && (
+                                                                <p className="text-[0.6rem] text-red-600">
+                                                                    {recoveryError}
+                                                                </p>
                                                             )}
                                                         </div>
-                                                    )}
-                                                    {bridgeError && (
-                                                        <div className="space-y-1 text-[0.65rem] text-amber-700">
-                                                            <div>{bridgeError}</div>
-                                                            {/No wallet provider|MetaMask|injected/i.test(bridgeError) && (
-                                                                <div className="text-slate-600">Connect MetaMask or another injected wallet to use Bridge Kit.</div>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                    </details>
                                                 </div>
+                                                {bridgeResult && (
+                                                    <div className="mt-2 space-y-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem]">
+                                                        <div className="font-semibold text-brand-dark">
+                                                            Bridge result: {(bridgeResult as { state?: string }).state ?? 'submitted'} · {(bridgeResult as { amount?: string }).amount ?? '—'} {(bridgeResult as { token?: string }).token ?? 'USDC'}
+                                                        </div>
+                                                        {Array.isArray((bridgeResult as { steps?: unknown[] }).steps) && (
+                                                            <div className="space-y-1.5">
+                                                                <span className="font-semibold text-slate-600">Steps</span>
+                                                                {((bridgeResult as { steps: Array<{ name?: string; state?: string; txHash?: string; explorerUrl?: string; errorMessage?: string }> }).steps).map((step, i) => (
+                                                                    <div key={i} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded border border-slate-100 bg-white px-2 py-1">
+                                                                        <span className="font-medium text-slate-700">{step.name ?? `Step ${i + 1}`}</span>
+                                                                        <span className={`rounded px-1 font-medium ${step.state === 'success' ? 'bg-emerald-100 text-emerald-700' : step.state === 'error' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
+                                                                            {step.state ?? 'pending'}
+                                                                        </span>
+                                                                        {step.txHash && (
+                                                                            <a href={step.explorerUrl ?? `https://etherscan.io/tx/${step.txHash}`} target="_blank" rel="noopener noreferrer" className="text-brand-blue underline">
+                                                                                tx: {step.txHash.slice(0, 10)}…{step.txHash.slice(-8)}
+                                                                            </a>
+                                                                        )}
+                                                                        {step.errorMessage && <span className="text-amber-700">{step.errorMessage}</span>}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {bridgeError && (
+                                                    <div className="space-y-1 text-[0.65rem] text-amber-700">
+                                                        <div>{bridgeError}</div>
+                                                        {/No wallet provider|MetaMask|injected/i.test(bridgeError) && (
+                                                            <div className="text-slate-600">Connect MetaMask or another injected wallet to use Bridge Kit.</div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        </motion.div>
-
-                        {/* Sidebar Info */}
-                        <div className="space-y-6">
-                            {/* Context Score Card */}
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className="gsap-reveal ens-card p-6 relative overflow-hidden"
-                            >
-                                <div className="absolute top-0 right-0 p-4 opacity-10">
-                                    <Activity className="w-32 h-32" />
                                 </div>
-                                <h3 className="text-lg font-bold text-brand-dark mb-1">Your tier</h3>
-                                <div className="text-4xl font-display font-black text-brand-dark mb-2">
-                                    {contextScore ? tier : 'Not Claimed'}
-                                </div>
-                                {contextScore ? (
-                                    <div className="inline-block bg-white/50 px-3 py-1 rounded-full text-xs font-bold text-brand-dark">
-                                        Score: {contextScore}
-                                    </div>
-                                ) : (
-                                    <Link to="/verify">
-                                        <Button size="sm" className="mt-2">Claim Context</Button>
-                                    </Link>
-                                )}
-                            </motion.div>
-
-                            {/* Privacy Info */}
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="gsap-reveal ens-card p-6"
-                            >
-                                <h3 className="text-lg font-bold text-brand-dark mb-4">Privacy perks</h3>
-                                <div className="space-y-3 text-sm">
-                                    <div className="flex items-start gap-2">
-                                        <Shield className="w-4 h-4 text-brand-blue mt-0.5" />
-                                        <div>
-                                            <strong className="text-brand-dark">Selective Disclosure</strong>
-                                            <div className="text-slate-600 text-xs">Prove tier without revealing score</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-2">
-                                        <Activity className="w-4 h-4 text-brand-blue mt-0.5" />
-                                        <div>
-                                            <strong className="text-brand-dark">Hidden Intent</strong>
-                                            <div className="text-slate-600 text-xs">Transaction details stay private</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
+                            )}
                     </div>
+                </motion.div>
 
+                {/* Sidebar Info */}
+                <div className="space-y-6">
+                    {/* Context Score Card */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="gsap-reveal max-w-6xl mx-auto mt-10 ens-card ens-glass p-8"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="gsap-reveal ens-card p-6 relative overflow-hidden"
                     >
-                        <div className="flex flex-col gap-2 mb-6">
-                            <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Hook Notes</p>
-                            <h2 className="text-2xl font-display font-bold text-brand-dark">
-                                How the hook works
-                            </h2>
-                            <p className="text-sm text-slate-600">
-                                Hyde plugs into swap execution as a v4 Hook so DeFi integrators can add tier-gated privacy
-                                without changing their frontends or liquidity sources.
-                            </p>
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <Activity className="w-32 h-32" />
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
-                            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                                <h4 className="font-semibold text-brand-dark mb-3">Flow</h4>
-                                <ul className="space-y-2">
-                                    <li>1. ENS ownership verified by backend scoring.</li>
-                                    <li>2. Tier registered onchain in the registry contract.</li>
-                                    <li>3. Hook checks tier + cooldown before swap execution.</li>
-                                    <li>4. Swap routes through existing pools with privacy gates.</li>
-                                    <li>5. Arc settles swap output into USDC for payment-ready balance.</li>
-                                </ul>
+                        <h3 className="text-lg font-bold text-brand-dark mb-1">Your tier</h3>
+                        <div className="text-4xl font-display font-black text-brand-dark mb-2">
+                            {contextScore ? tier : 'Not Claimed'}
+                        </div>
+                        {contextScore ? (
+                            <div className="inline-block bg-white/50 px-3 py-1 rounded-full text-xs font-bold text-brand-dark">
+                                Score: {contextScore}
                             </div>
-                            <div className="bg-white rounded-2xl p-5 border border-slate-100">
-                                <h4 className="font-semibold text-brand-dark mb-3">Integrator wins</h4>
-                                <ul className="space-y-2">
-                                    <li>Lower MEV exposure via tier gating and cooldowns.</li>
-                                    <li>Portable ENS identity across chains and apps.</li>
-                                    <li>No new liquidity bootstrap—use existing Uniswap pools.</li>
-                                    <li>Composable with wallet, router, and analytics layers.</li>
-                                </ul>
+                        ) : (
+                            <Link to="/verify">
+                                <Button size="sm" className="mt-2">Claim Context</Button>
+                            </Link>
+                        )}
+                    </motion.div>
+
+                    {/* Study: Step 1 Swap */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="gsap-reveal ens-card p-6 border border-indigo-50"
+                    >
+                        <h3 className="text-sm font-bold text-brand-dark mb-3 flex items-center gap-2">
+                            <div className="w-1.5 h-4 bg-brand-blue rounded-full" />
+                            Step 1: Selective Disclosure Swap
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                            Your swap is executed via a <strong>Uniswap v4 Hook</strong>. Unlike public swaps, Hyde verifies your
+                            ENS tier without revealing your wallet's full history or score to the market.
+                        </p>
+                        <div className="space-y-3">
+                            <div className="flex items-start gap-2 text-xs">
+                                <Shield className="w-3.5 h-3.5 text-brand-blue mt-0.5" />
+                                <span className="text-slate-600"><strong>Privacy Gate:</strong> Hook checks if you meet the Pool's tier requirement.</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-xs">
+                                <Activity className="w-3.5 h-3.5 text-brand-blue mt-0.5" />
+                                <span className="text-slate-600"><strong>Intent Shield:</strong> Your swap intention is anchored to your ENS name, not raw metadata.</span>
                             </div>
                         </div>
                     </motion.div>
+
+                    {/* Study: Step 2 Settlement */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="gsap-reveal ens-card p-6 border border-blue-50"
+                    >
+                        <h3 className="text-sm font-bold text-brand-dark mb-3 flex items-center gap-2">
+                            <div className="w-1.5 h-4 bg-brand-blue rounded-full" />
+                            Step 2: Arc Settlement
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                            After swapping, your USDC is settled onto the <strong>Arc Unified Balance</strong>.
+                            This creates a payment-ready state that works seamlessly across all Circle-enabled domains.
+                        </p>
+                        <ul className="text-[0.65rem] text-slate-500 space-y-2 list-disc pl-4">
+                            <li><strong>Bridge Ready:</strong> Finalized USDC can be instantly moved to other chains via Bridge Kit.</li>
+                            <li><strong>Compliance-First:</strong> Arc layer handles the messy bridge finality, leaving you with liquid USDC.</li>
+                            <li><strong>Unified State:</strong> Your ENS profile tracks this balance globally across testnets.</li>
+                        </ul>
+                    </motion.div>
                 </div>
             </div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="gsap-reveal max-w-6xl mx-auto mt-10 ens-card ens-glass p-8"
+            >
+                <div className="flex flex-col gap-2 mb-6">
+                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Hook Notes</p>
+                    <h2 className="text-2xl font-display font-bold text-brand-dark">
+                        How the hook works
+                    </h2>
+                    <p className="text-sm text-slate-600">
+                        Hyde plugs into swap execution as a v4 Hook so DeFi integrators can add tier-gated privacy
+                        without changing their frontends or liquidity sources.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
+                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                        <h4 className="font-semibold text-brand-dark mb-3">Flow</h4>
+                        <ul className="space-y-2">
+                            <li>1. ENS ownership verified by backend scoring.</li>
+                            <li>2. Tier registered onchain in the registry contract.</li>
+                            <li>3. Hook checks tier + cooldown before swap execution.</li>
+                            <li>4. Swap routes through existing pools with privacy gates.</li>
+                            <li>5. Arc settles swap output into USDC for payment-ready balance.</li>
+                        </ul>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 border border-slate-100">
+                        <h4 className="font-semibold text-brand-dark mb-3">Integrator wins</h4>
+                        <ul className="space-y-2">
+                            <li>Lower MEV exposure via tier gating and cooldowns.</li>
+                            <li>Portable ENS identity across chains and apps.</li>
+                            <li>No new liquidity bootstrap—use existing Uniswap pools.</li>
+                            <li>Composable with wallet, router, and analytics layers.</li>
+                        </ul>
+                    </div>
+                </div>
+            </motion.div>
+        </div >
             <Modal
                 isOpen={isHelpOpen}
                 onClose={() => setIsHelpOpen(false)}
