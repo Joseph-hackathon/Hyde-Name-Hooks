@@ -698,11 +698,18 @@ export default function AppPage() {
                             <p className="text-sm text-slate-600 mb-2">
                                 Selective disclosure execution • Hide your intent • Anchor your name
                             </p>
-                            <p className="text-xs text-slate-500 mb-6">
-                                <strong>Step 1.</strong> Execute the trade on Uniswap (Pay → Receive). Then use Step 2 to settle the USDC you receive into payment-ready balance.
-                            </p>
+                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                <div className="bg-slate-50/50 rounded-xl p-3 border border-slate-100">
+                                    <div className="text-[0.6rem] uppercase tracking-wider text-slate-400 mb-1">Uniswap v4 Hook</div>
+                                    <div className="text-[0.65rem] font-mono text-slate-600 truncate">0x12a2...d371</div>
+                                </div>
+                                <div className="bg-slate-50/50 rounded-xl p-3 border border-slate-100">
+                                    <div className="text-[0.6rem] uppercase tracking-wider text-slate-400 mb-1">ENS Context Registry</div>
+                                    <div className="text-[0.65rem] font-mono text-slate-600 truncate">0x0042...5eCe</div>
+                                </div>
+                            </div>
 
-                            <div className="space-y-4">
+                            <div className="mt-6 space-y-4">
                                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 hover:border-indigo-200 transition-colors">
                                     <div className="flex justify-between mb-2">
                                         <span className="text-slate-500 text-sm font-bold">Pay</span>
