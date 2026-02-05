@@ -27,47 +27,47 @@ const MOCK_POOLS: Pool[] = [
         name: 'ETH/USDC',
         token0: 'ETH',
         token1: 'USDC',
-        tvl: '$12.5M',
-        apr: '15.2%',
+        tvl: '$42.5M',
+        apr: '18.4%',
         minScore: 800,
         isGated: true,
-        volume24h: '$2.1M',
+        volume24h: '$5.2M',
         tier: 'Trusted'
     },
     {
         id: '2',
-        name: 'WBTC/ETH',
+        name: 'WBTC/USDC',
         token0: 'WBTC',
-        token1: 'ETH',
-        tvl: '$8.3M',
-        apr: '18.9%',
+        token1: 'USDC',
+        tvl: '$28.3M',
+        apr: '22.1%',
         minScore: 900,
         isGated: true,
-        volume24h: '$1.5M',
+        volume24h: '$3.5M',
         tier: 'Elite'
     },
     {
         id: '3',
-        name: 'USDC/DAI',
+        name: 'USDC/USDT',
         token0: 'USDC',
-        token1: 'DAI',
-        tvl: '$18.2M',
-        apr: '8.5%',
+        token1: 'USDT',
+        tvl: '$15.2M',
+        apr: '4.5%',
         minScore: 0,
         isGated: false,
-        volume24h: '$5.2M',
+        volume24h: '$12.2M',
         tier: 'Standard'
     },
     {
         id: '4',
-        name: 'UNI/ETH',
-        token0: 'UNI',
+        name: 'cbBTC/ETH',
+        token0: 'cbBTC',
         token1: 'ETH',
-        tvl: '$6.1M',
-        apr: '16.3%',
+        tvl: '$12.1M',
+        apr: '19.3%',
         minScore: 800,
         isGated: true,
-        volume24h: '$980K',
+        volume24h: '$1.8M',
         tier: 'Trusted'
     }
 ];
@@ -161,7 +161,8 @@ export default function PoolsPage() {
                         Private pools
                     </h1>
                     <p className="gsap-pools-header text-lg text-slate-600">
-                        Browse ENS context-gated pools. <strong>Prove your tier, keep your privacy, access better execution.</strong>
+                        Access exclusive Uniswap liquidity through ENS selective disclosure.
+                        <strong> Prove your tier without revealing your score. Hide your intent.</strong>
                     </p>
                 </motion.div>
 
@@ -181,8 +182,8 @@ export default function PoolsPage() {
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-5 py-2 rounded-full font-semibold transition-all ${filter === 'all'
-                                ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
-                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
+                            ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
                         All
@@ -190,8 +191,8 @@ export default function PoolsPage() {
                     <button
                         onClick={() => setFilter('privacy')}
                         className={`px-5 py-2 rounded-full font-semibold transition-all flex items-center gap-2 ${filter === 'privacy'
-                                ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
-                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
+                            ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
                         <Lock className="w-4 h-4" />
@@ -200,8 +201,8 @@ export default function PoolsPage() {
                     <button
                         onClick={() => setFilter('open')}
                         className={`px-5 py-2 rounded-full font-semibold transition-all ${filter === 'open'
-                                ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
-                                : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
+                            ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/20'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:border-brand-blue hover:text-brand-blue'
                             }`}
                     >
                         Open
@@ -247,13 +248,15 @@ export default function PoolsPage() {
                                     </div>
 
                                     {!hasAccess && (
-                                        <div className="bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-semibold border border-red-100">
+                                        <div className="bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-100 flex items-center gap-1.5">
+                                            <Lock className="w-3 h-3" />
                                             Locked
                                         </div>
                                     )}
                                     {hasAccess && pool.isGated && (
-                                        <div className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-100">
-                                            ✓ Access
+                                        <div className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100 flex items-center gap-1.5">
+                                            <Shield className="w-3 h-3" />
+                                            Unlocked
                                         </div>
                                     )}
                                 </div>
@@ -276,11 +279,14 @@ export default function PoolsPage() {
                                 </div>
 
                                 {pool.isGated && (
-                                    <div className="bg-indigo-50 p-3 rounded-xl mb-4 text-sm border border-indigo-100">
-                                        <span className="text-slate-700">
-                                            <Shield className="w-4 h-4 inline mr-2 text-brand-blue" />
-                                            <strong>Private:</strong> Selective disclosure enforced
-                                        </span>
+                                    <div className="bg-indigo-50/50 p-3 rounded-xl mb-4 text-xs border border-indigo-100/50">
+                                        <div className="flex items-start gap-2">
+                                            <Shield className="w-4 h-4 text-brand-blue flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <strong className="text-brand-dark block">Selective Disclosure Active</strong>
+                                                <span className="text-slate-600">Your ENS {pool.tier} status is checked by the Hyde v4 Hook. No score leakage.</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
