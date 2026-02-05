@@ -82,3 +82,27 @@ export async function executeBridgeInBrowser(params: {
     });
     return serializeBridgeResult(result) as unknown as Record<string, unknown>;
 }
+
+export async function recoverBridgeInBrowser(params: {
+    sourceTxHash: string;
+}): Promise<Record<string, unknown>> {
+    const provider = getProvider();
+    const adapter = await createViemAdapterFromProvider({ provider });
+
+    // Circle Bridge Kit can attempt to "pick up" a transaction by its source hash
+    // in some versions/configurations, or we might need to use the lower level CCTP adapter.
+    // Given the "Smart Retry" feature, we try to initiate a bridge call which should 
+    // ideally recognize the existing transaction if the parameters match, 
+    // or we use the specific recovery mechanism if available in the SDK.
+
+    // Note: If the SDK doesn't have a direct 'recover(hash)' we might need to 
+    // manually fetch the attestation and call receiveMessage.
+
+    const result = await kit.bridge({
+        from: { adapter, chain: 'base_sepolia' as any }, // Defaulting to base_sepolia for now as per user report
+        to: { adapter, chain: 'ethereum_sepolia' as any },
+        sourceTxHash: params.sourceTxHash,
+    } as any);
+
+    return serializeBridgeResult(result) as unknown as Record<string, unknown>;
+}

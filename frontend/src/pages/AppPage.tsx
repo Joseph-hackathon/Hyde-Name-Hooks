@@ -18,7 +18,7 @@ import {
     getBridgeChains,
     getBridgeSourceBalance,
 } from '../lib/api';
-import { estimateBridgeInBrowser, executeBridgeInBrowser } from '../lib/bridgeKitBrowser';
+import { estimateBridgeInBrowser, executeBridgeInBrowser, recoverBridgeInBrowser } from '../lib/bridgeKitBrowser';
 import type { BurnIntentMessage } from '../lib/api';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -99,6 +99,10 @@ export default function AppPage() {
     const [bridgeStartTime, setBridgeStartTime] = useState<number | null>(null);
     const [sourceBalance, setSourceBalance] = useState<string | null>(null);
     const [sourceBalanceLoading, setSourceBalanceLoading] = useState(false);
+
+    const [recoveryTxHash, setRecoveryTxHash] = useState('');
+    const [recoveryStatus, setRecoveryStatus] = useState<'idle' | 'recovering' | 'success' | 'error'>('idle');
+    const [recoveryError, setRecoveryError] = useState<string | null>(null);
 
     const [gatewayDomains, setGatewayDomains] = useState<Array<{ domain: number; name: string }>>([]);
     const [gatewaySourceDomain, setGatewaySourceDomain] = useState<number>(0);
@@ -476,6 +480,27 @@ export default function AppPage() {
         } catch (error: unknown) {
             setBridgeStatus('error');
             setBridgeError(error instanceof Error ? error.message : 'Failed to estimate bridge transfer.');
+        }
+    };
+
+    const handleRecoverBridge = async () => {
+        if (!recoveryTxHash) {
+            setRecoveryError('Enter a transaction hash.');
+            return;
+        }
+        setRecoveryStatus('recovering');
+        setRecoveryError(null);
+        try {
+            const result = await recoverBridgeInBrowser({
+                sourceTxHash: recoveryTxHash.trim(),
+            });
+            console.log('Recovery result:', result);
+            setRecoveryStatus('success');
+            setBridgeStatus('success');
+            setBridgeResult(result);
+        } catch (error: unknown) {
+            setRecoveryStatus('error');
+            setRecoveryError(error instanceof Error ? error.message : 'Bridge recovery failed.');
         }
     };
 
@@ -1233,7 +1258,7 @@ export default function AppPage() {
                                                         </div>
                                                     )}
                                                     {bridgeEstimate && (
-                                                        <div className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem]">
+                                                        <div className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem] mt-3">
                                                             <div className="font-semibold text-slate-700">
                                                                 Estimate: {(bridgeEstimate as { amount?: string }).amount ?? '—'} {(bridgeEstimate as { token?: string }).token ?? 'USDC'}
                                                             </div>
@@ -1252,6 +1277,49 @@ export default function AppPage() {
                                                             <div className="text-slate-500">Review above, then click Bridge.</div>
                                                         </div>
                                                     )}
+
+                                                    {/* Bridge Recovery Section */}
+                                                    <div className="mt-6 border-t border-slate-100 pt-4">
+                                                        <details className="group">
+                                                            <summary className="flex items-center justify-between cursor-pointer list-none">
+                                                                <span className="text-[0.65rem] font-bold text-slate-500 group-open:text-brand-blue transition-colors">
+                                                                    Support: Resume Pending Bridge
+                                                                </span>
+                                                                <ArrowLeft className="w-3 h-3 text-slate-400 group-open:rotate-90 transition-transform" />
+                                                            </summary>
+                                                            <div className="mt-3 space-y-3">
+                                                                <p className="text-[0.6rem] text-slate-500">
+                                                                    If your bridge was interrupted or is waiting for attestation, enter the <strong>Source Transaction Hash</strong> to complete the mint.
+                                                                </p>
+                                                                <div className="flex gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={recoveryTxHash}
+                                                                        onChange={(e) => setRecoveryTxHash(e.target.value)}
+                                                                        placeholder="0x..."
+                                                                        className="flex-1 px-2 py-1 text-[0.65rem] border border-slate-200 rounded outline-none focus:border-brand-blue"
+                                                                    />
+                                                                    <button
+                                                                        onClick={handleRecoverBridge}
+                                                                        disabled={recoveryStatus === 'recovering'}
+                                                                        className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[0.65rem] font-bold transition-colors disabled:opacity-50"
+                                                                    >
+                                                                        {recoveryStatus === 'recovering' ? 'Resuming...' : 'Resume'}
+                                                                    </button>
+                                                                </div>
+                                                                {recoveryStatus === 'success' && (
+                                                                    <p className="text-[0.6rem] text-emerald-600 font-bold">
+                                                                        Bridge resumed! Checking finalization...
+                                                                    </p>
+                                                                )}
+                                                                {recoveryStatus === 'error' && recoveryError && (
+                                                                    <p className="text-[0.6rem] text-red-600">
+                                                                        {recoveryError}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </details>
+                                                    </div>
                                                     {bridgeResult && (
                                                         <div className="mt-2 space-y-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[0.65rem]">
                                                             <div className="font-semibold text-brand-dark">
