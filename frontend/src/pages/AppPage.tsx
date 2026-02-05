@@ -1145,7 +1145,7 @@ export default function AppPage() {
                                                     <span className="font-semibold text-brand-dark">Bridge Kit transfer</span>
                                                 </div>
                                                 <p className="mt-1 text-[0.65rem] text-slate-500">
-                                                    Backend must have CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET set. Use as <strong>source</strong> the chain where your wallet has native token for gas (e.g. Ethereum Sepolia if you have Sepolia ETH). Balance is checked on the source chain only.
+                                                    Use as <strong>source</strong> the chain where your wallet has native token for gas (e.g. Arc Testnet ↔ Base Sepolia). Balance is checked on the source chain only.
                                                 </p>
                                                 {address && /Ethereum_Sepolia|Ethereum Sepolia/i.test(bridgeFromChain) && (
                                                     <div className="mt-2 text-[0.65rem]">
